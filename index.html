@@ -3,1812 +3,618 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Executivo de Infraestrutura, RH, Utilidades e Orçamento</title>
+    <title>Painel - Monitoramento AGSUS</title>
     
-    <!-- Dependências do Tailwind e Ícones -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <!-- Dependências do Chart.js (Aba Infra) -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-    
-    <!-- Dependências do React e Recharts (Aba Utilidades) -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
-    <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-    <!-- Dependências do Leaflet (Mapas em todas as abas) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background: #f8fafc; }
+        header { background: #002d57; color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 60px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0; }
         
-        /* ESTILOS COMPARTILHADOS E ABA INFRA */
-        .status-badge { @apply px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap border; }
-        .sit-adequada { @apply bg-green-600 text-white border-green-700 shadow-sm; }
-        .sit-inadequada { @apply bg-orange-400 text-white border-orange-500 shadow-sm; }
-        .sit-nao-ocupado { @apply bg-red-600 text-white border-red-700 shadow-sm; }
-        .sit-contratacao { @apply bg-blue-500 text-white border-blue-600 shadow-sm; }
-        
-        .bg-ok { @apply bg-green-100 text-green-800 border-green-200; }
-        .bg-warning { @apply bg-yellow-100 text-yellow-800 border-yellow-200; }
-        .bg-error { @apply bg-red-100 text-red-800 border-red-200; }
-        .bg-neutral { @apply bg-slate-100 text-slate-500 border-slate-200; }
-        
-        .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        
-        /* Ajuste do Mapa Vanilla para ser Quadrado e Centralizado */
-        .map-container-square { width: 100%; max-width: 800px; aspect-ratio: 1 / 1; margin: 0 auto; position: relative; }
-        #map, #map-comp, #map-orc { height: 100%; width: 100%; border-radius: 1.5rem; z-index: 10; }
-        
-        .city-label { 
-            background: rgba(255, 255, 255, 0.85) !important; border: 1px solid #cbd5e1 !important; 
-            border-radius: 4px !important; box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important; 
-            font-weight: 700 !important; font-size: 10px !important; color: #0f172a !important; 
-            white-space: nowrap; padding: 2px 6px !important; margin-top: -5px !important;
-        }
-        .city-label::before { display: none; }
-        
-        th.sortable { cursor: pointer; transition: background 0.2s; position: relative; }
-        th.sortable:hover { @apply bg-slate-800; }
-        .sort-icon { display: inline-block; margin-left: 4px; opacity: 0.3; }
-        th.active-sort .sort-icon { opacity: 1; color: #3b82f6; }
-        
-        /* ESTILOS DAS ABAS PRINCIPAIS */
-        .tab-box { 
-            @apply px-4 py-2 rounded-lg border-2 border-slate-200 font-bold transition-all uppercase text-[10px] tracking-widest bg-white;
-            color: #64748b; 
-        }
-        .tab-box.active { @apply border-slate-900 bg-slate-50 shadow-md; color: #1e293b; }
-        .tab-infra { border-left-color: #3b82f6; }
-        .tab-infra.active { background-color: #eff6ff; border-color: #3b82f6; color: #1d4ed8; }
-        .tab-rh { border-left-color: #10b981; }
-        .tab-rh.active { background-color: #f0fdf4; border-color: #10b981; color: #047857; }
-        .tab-util { border-left-color: #f59e0b; }
-        .tab-util.active { background-color: #fffbeb; border-color: #f59e0b; color: #b45309; }
-        .tab-comp { border-left-color: #ec4899; }
-        .tab-comp.active { background-color: #fdf2f8; border-color: #ec4899; color: #be185d; }
-        .tab-orc { border-left-color: #8b5cf6; }
-        .tab-orc.active { background-color: #f5f3ff; border-color: #8b5cf6; color: #7c3aed; }
-        .tab-links { border-left-color: #64748b; }
-        .tab-links.active { background-color: #f1f5f9; border-color: #64748b; color: #334155; }
+        .nav-tabs { display: flex; list-style: none; margin: 0; padding: 0; height: 100%; }
+        .nav-tabs li { display: flex; align-items: center; padding: 0 20px; cursor: pointer; color: #cbd5e0; border-bottom: 4px solid transparent; transition: 0.3s; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        .nav-tabs li:hover { background: rgba(255,255,255,0.05); color: white; }
+        .nav-tabs li.active { border-bottom: 4px solid #3b82f6; color: white; background: rgba(255,255,255,0.1); font-weight: bold; }
 
-        .map-legend {
-            position: absolute; bottom: 20px; right: 20px; z-index: 1000;
-            background: rgba(255,255,255,0.95); backdrop-filter: blur(4px); padding: 10px; border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); font-size: 10px;
-            font-weight: bold; display: flex; flex-direction: column;
-            gap: 6px; border: 1px solid #e2e8f0;
-        }
-        .legend-item { display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
-        .legend-color { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); }
-        .percent-badge { @apply w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold border-2; transition: all 0.2s; }
+        .content-page { display: none; flex: 1; overflow: hidden; position: relative; }
+        .content-page.active { display: flex; }
 
-        /* ESTILOS ABA REACT/RECHARTS */
-        .recharts-default-tooltip { border-radius: 12px !important; border: none !important; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important; }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .tab-active-react { background-color: #005fb2 !important; color: white !important; }
-        .leaflet-container { z-index: 0; border-radius: 1.5rem; font-family: 'Inter', sans-serif; }
-        .custom-map-marker { background: transparent; border: none; }
-        .custom-leaflet-tooltip { border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); padding: 0.5rem; }
+        #map { flex: 2; background: #cbd5e0; position: relative; }
+        #sidebar-resumo { flex: 1; min-width: 420px; background: white; overflow-y: auto; padding: 15px; border-left: 1px solid #e2e8f0; padding-bottom: 60px; }
 
-        /* ESTILOS ESPECÍFICOS: COMPETÊNCIAS */
-        .custom-popup-comp .leaflet-popup-content-wrapper { background: #1e293b; color: #fff; border-radius: 8px; padding: 5px; }
-        .custom-popup-comp .leaflet-popup-tip { background: #1e293b; }
+        /* Estilo do Popup no Mapa */
+        .custom-popup .leaflet-popup-content-wrapper { background: #002d57; color: #fff; border-radius: 8px; padding: 5px; }
+        .custom-popup .leaflet-popup-tip { background: #002d57; }
         .popup-data { font-size: 12px; line-height: 1.6; }
         .popup-title { font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 5px; padding-bottom: 2px; font-size: 14px; }
-        .nota-badge-comp { display: inline-block; width: 28px; text-align: center; padding: 2px 0; border-radius: 4px; color: white; font-weight: bold; }
-        .comp-subtab.active { @apply border-blue-500 text-blue-600 bg-blue-50; }
 
-        /* ESTILOS ESPECÍFICOS: ORÇAMENTO */
-        .highlight-row { background-color: #fef08a !important; font-weight: bold; transition: 0.3s; }
+        /* Legenda do Mapa com status integrados */
+        .map-legend-container {
+            position: absolute;
+            bottom: 60px;
+            left: 10px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 280px;
+        }
+        
+        .map-legend, .status-box {
+            background: white; 
+            padding: 10px; 
+            border-radius: 5px; 
+            box-shadow: 0 1px 5px rgba(0,0,0,0.4); 
+            line-height: 18px; 
+            color: #333;
+            backdrop-filter: blur(2px);
+        }
+        
+        .status-box {
+            padding: 8px 10px;
+        }
+        
+        .legend-title {
+            font-weight: 600;
+            font-size: 12px;
+            color: #002d57;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .legend-item { display: flex; align-items: center; margin-bottom: 4px; font-size: 11px; }
+        .legend-color { width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; border: 1px solid #666; flex-shrink: 0; }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 5px;
+        }
+        
+        .status-section {
+            font-size: 11px;
+        }
+        
+        .status-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 3px;
+            justify-content: space-between;
+        }
+        
+        .status-info {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .status-count {
+            font-weight: 600;
+            font-size: 11px;
+            color: #0f172a;
+        }
+        
+        .status-label {
+            font-size: 10px;
+            color: #475569;
+        }
+
+        /* Caixas de Texto (Critérios) */
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .info-box { background: #f1f5f9; padding: 10px; border-radius: 6px; border-left: 4px solid #002d57; font-size: 11px; }
+        .info-box h4 { margin: 0 0 5px 0; font-size: 12px; color: #002d57; }
+        .info-box ul { margin: 0; padding-left: 15px; }
+
+        #page-competencias { flex-direction: column; padding: 25px; background: white; overflow-y: auto; }
+        .table-wrapper { width: 100%; overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 60px; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        th { background: #f8fafc; color: #475569; padding: 10px; text-align: left; position: sticky; top: 0; border-bottom: 2px solid #e2e8f0; z-index: 10; cursor: pointer; transition: background 0.2s; }
+        th:hover { background: #e2e8f0; }
+        th::after { content: ' ↕'; font-size: 10px; color: #94a3b8; margin-left: 5px; }
+        
+        td { padding: 8px; border-bottom: 1px solid #f1f5f9; }
+
+        .nota-badge { display: inline-block; width: 28px; text-align: center; padding: 2px 0; border-radius: 4px; color: white; font-weight: bold; }
+        .label-fixo-cidade { background: transparent; border: none; box-shadow: none; font-weight: 800; color: #0f172a; font-size: 10px; text-shadow: 1px 1px 2px white; pointer-events: none; }
+
+        .footer-link { position: fixed; bottom: 0; left: 0; right: 0; height: 40px; background: rgba(255, 255, 255, 0.95); border-top: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; z-index: 2000; font-size: 12px; backdrop-filter: blur(5px); }
+        .footer-link a { color: #002d57; text-decoration: none; font-weight: 600; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen">
+<body>
 
-    <div class="max-w-[1650px] mx-auto px-4 py-8">
-        <!-- CABEÇALHO GLOBAL -->
-        <header class="mb-6 border-b border-slate-200 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <div class="flex items-center gap-2 mb-1">
-                    <span class="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Interno</span>
-                    <h1 class="text-3xl font-bold text-slate-800 tracking-tight uppercase">Gestão dos Escritórios</h1>
-                </div>
-                <p class="text-slate-500">Monitoramento Integrado AGSUS</p>
+<header>
+    <div style="font-weight: bold; font-size: 18px;">AGSUS - Gestão de Competências</div>
+    <ul class="nav-tabs">
+        <li onclick="openTab('page-mapa', this)" class="active">Visão Geral</li>
+        <li onclick="openTab('page-competencias', this)">Avaliação Detalhada</li>
+    </ul>
+</header>
+
+<div id="page-mapa" class="content-page active">
+    <div id="map"></div>
+    <div id="sidebar-resumo">
+        <div class="info-grid">
+            <div class="info-box">
+                <h4>Critérios Avaliados</h4>
+                <ul>
+                    <li>Gestão de processos</li>
+                    <li>Gestão de Projetos</li>
+                    <li>Governança e conformidade</li>
+                    <li>Qualidade no SEI</li>
+                    <li>Decisão baseada em evidência</li>
+                    <li>Institucional</li>
+                    <li>Comunicação</li>
+                </ul>
             </div>
-            <div class="text-right">
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Painel Consolidado</p>
-            </div>
-        </header>
-
-        <!-- NAVEGAÇÃO GLOBAL (ABAS) -->
-        <div class="flex flex-wrap gap-3 mb-8 border-b border-slate-200 pb-4">
-            <button onclick="switchTab('util')" id="btn-util" class="tab-box tab-util active">Gestão de Aluguel/Utilidades</button>
-            <button onclick="switchTab('rh')" id="btn-rh" class="tab-box tab-rh">Quadro de Vagas</button>
-            <button onclick="switchTab('comp')" id="btn-comp" class="tab-box tab-comp">Gestão de Competências</button>
-            <button onclick="switchTab('orc')" id="btn-orc" class="tab-box tab-orc">Orçamento 2026</button>
-            <button onclick="switchTab('links')" id="btn-links" class="tab-box tab-links">Acesso Rápido</button>
-        </div>
-
-        <!-- CONTEÚDO 1: GESTÃO DE LOCAÇÕES E UTILIDADES (APLICATIVO REACT) -->
-        <div id="tab-util-content" class="block">
-            <div id="root-utilidades"></div>
-        </div>
-
-        <!-- CONTEÚDO 2: INFRAESTRUTURA -->
-        <div id="tab-infra-content" class="hidden">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-wider text-center">Situação Geral</h3>
-                    <div class="h-[200px] flex justify-center items-center"><canvas id="situationChart"></canvas></div>
-                </div>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-wider text-center">Natureza Jurídica</h3>
-                    <div class="h-[200px] flex justify-center items-center"><canvas id="natureChart"></canvas></div>
-                </div>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-wider text-center">Mobiliário</h3>
-                    <div class="h-[200px] flex justify-center items-center"><canvas id="mobDetailedChart"></canvas></div>
-                </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8">
-                <h3 class="text-[11px] font-black text-slate-600 uppercase mb-6 tracking-wider flex items-center gap-2">
-                    <i data-lucide="bar-chart-2" class="w-4 h-4 text-blue-500"></i> Atingimento por Serviço (%)
-                </h3>
-                <div class="h-[250px]"><canvas id="servicesChart"></canvas></div>
-            </div>
-
-            <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200 mb-8 relative">
-                <h3 class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-wider text-center">Geolocalização das Unidades</h3>
-                <div class="map-container-square">
-                    <div id="map" class="border border-slate-100 shadow-inner"></div>
-                    <div class="map-legend">
-                        <div class="legend-item"><span class="legend-color bg-green-600"></span> Adequada</div>
-                        <div class="legend-item"><span class="legend-color bg-orange-400"></span> Inadequada</div>
-                        <div class="legend-item"><span class="legend-color bg-red-600"></span> Não Ocupado</div>
-                        <div class="legend-item"><span class="legend-color bg-blue-500"></span> Contratação</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-wrap gap-4 items-end">
-                <div class="flex-1 min-w-[200px]">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Município Sede</label>
-                    <select id="municipioFilter" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none cursor-pointer focus:ring-2 focus:ring-blue-500"><option value="all">Todos</option></select>
-                </div>
-                <div class="w-48">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Natureza Jurídica</label>
-                    <select id="natureFilter" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none cursor-pointer focus:ring-2 focus:ring-blue-500">
-                        <option value="all">Todas</option><option value="Coworking">Coworking</option><option value="Locado - CNPJ">Locado - CNPJ</option><option value="Locado - CPF">Locado - CPF</option><option value="Edif. Público">Edifício Público</option>
-                    </select>
-                </div>
-                <div class="w-48">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Situação Final</label>
-                    <select id="situacaoFilter" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none cursor-pointer focus:ring-2 focus:ring-blue-500">
-                        <option value="all">Todas</option><option value="Adequada">Adequada</option><option value="Inadequada">Inadequada</option><option value="Não ocupado">Não Ocupado</option><option value="Contratação">Contratação</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
-                <div class="overflow-x-auto overflow-y-auto custom-scrollbar max-h-[500px]">
-                    <table class="w-full text-left text-[11px] border-separate border-spacing-0" id="infraTable">
-                        <thead class="bg-slate-900 text-white uppercase font-bold tracking-wider">
-                            <tr>
-                                <th class="px-4 py-4 sticky left-0 top-0 bg-slate-900 z-40 border-b border-slate-800 sortable" onclick="handleSort('id')">Município Sede <span class="sort-icon" id="icon-id">↕</span></th>
-                                <th class="px-3 py-4 sticky top-0 bg-slate-900 z-30 border-b border-slate-800 sortable" onclick="handleSort('compliance')">Atingimento <span class="sort-icon" id="icon-compliance">↕</span></th>
-                                <th class="px-3 py-4 sticky top-0 bg-slate-900 z-30 border-b border-slate-800 sortable" onclick="handleSort('nat')">Natureza <span class="sort-icon" id="icon-nat">↕</span></th>
-                                <th class="px-3 py-4 sticky top-0 bg-slate-900 z-30 border-b border-slate-800 sortable" onclick="handleSort('mob')">Mobiliário <span class="sort-icon" id="icon-mob">↕</span></th>
-                                <th class="px-3 py-4 sticky top-0 bg-slate-900 z-30 border-b border-slate-800 sortable" onclick="handleSort('lim')">Limpeza <span class="sort-icon" id="icon-lim">↕</span></th>
-                                <th class="px-3 py-4 sticky top-0 bg-slate-900 z-30 border-b border-slate-800 sortable" onclick="handleSort('jar')">Jardinagem <span class="sort-icon" id="icon-jar">↕</span></th>
-                                <th class="px-3 py-4 sticky top-0 bg-slate-900 z-30 border-b border-slate-800 sortable" onclick="handleSort('int')">Internet <span class="sort-icon" id="icon-int">↕</span></th>
-                                <th class="px-3 py-4 sticky top-0 bg-slate-900 z-30 border-b border-slate-800 sortable" onclick="handleSort('tel')">Telefonia <span class="sort-icon" id="icon-tel">↕</span></th>
-                                <th class="px-3 py-4 sticky top-0 bg-slate-900 z-30 border-b border-slate-800 sortable" onclick="handleSort('vig')">Vigilância <span class="sort-icon" id="icon-vig">↕</span></th>
-                                <th class="px-3 py-4 sticky top-0 bg-slate-900 z-30 border-b border-slate-800 sortable" onclick="handleSort('imp')">Impressão <span class="sort-icon" id="icon-imp">↕</span></th>
-                                <th class="px-4 py-4 text-center sticky top-0 bg-slate-900 z-30 border-b border-slate-800">Situação Final</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100"></tbody>
-                    </table>
-                </div>
+            <div class="info-box">
+                <h4>Escala de Avaliação</h4>
+                <ul>
+                    <li>0: Desconhece</li>
+                    <li>1: Conhece Termos</li>
+                    <li>2: Aplica com erros</li>
+                    <li>3: Aplica corretamente</li>
+                    <li>4: Aplica e orienta</li>
+                    <li>5: Melhora o processo</li>
+                </ul>
             </div>
         </div>
 
-        <!-- CONTEÚDO 3: RECURSOS HUMANOS -->
-        <div id="tab-rh-content" class="hidden">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center text-center">
-                    <span class="text-6xl font-black text-blue-600" id="totalFillPercent">0%</span>
-                    <p class="text-sm font-bold text-slate-400 uppercase mt-4">Ocupação Total de Vagas na Rede</p>
-                </div>
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center gap-12 text-center">
-                    <div>
-                        <span class="text-4xl font-black text-slate-700 block" id="totalMeta">0</span>
-                        <p class="text-[10px] font-bold tracking-widest text-slate-400 uppercase mt-2">Meta Total</p>
-                    </div>
-                    <div class="h-16 w-px bg-slate-200"></div>
-                    <div>
-                        <span class="text-4xl font-black text-emerald-500 block" id="totalReal">0</span>
-                        <p class="text-[10px] font-bold tracking-widest text-slate-400 uppercase mt-2">Preenchidas</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 mb-6">
-                <div class="max-w-md">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Pesquisar Unidade</label>
-                    <input type="text" id="searchInputRh" placeholder="Filtrar por nome..." class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-            </div>
-
-            <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
-                <div class="overflow-x-auto overflow-y-auto custom-scrollbar max-h-[600px]">
-                    <table class="w-full text-left text-[11px] border-separate border-spacing-0" id="rhTable">
-                        <thead class="bg-slate-900 text-white uppercase font-bold tracking-wider">
-                            <tr>
-                                <th class="px-4 py-4 sticky left-0 top-0 bg-slate-900 z-40 border-b border-slate-800 sortable" onclick="handleSortRh('id')">Unidade de Gestão <span class="sort-icon" id="icon-rh-id">↕</span></th>
-                                <th class="px-3 py-4 sticky top-0 bg-slate-900 z-30 border-b border-slate-800 text-center sortable" onclick="handleSortRh('mSup')">Superior (Meta) <span class="sort-icon" id="icon-rh-mSup">↕</span></th>
-                                <th class="px-3 py-4 sticky top-0 bg-slate-900 z-30 border-b border-slate-800 text-center sortable" onclick="handleSortRh('rSup')">Superior (Real) <span class="sort-icon" id="icon-rh-rSup">↕</span></th>
-                                <th class="px-3 py-4 sticky top-0 bg-slate-900 z-30 border-b border-slate-800 text-center sortable" onclick="handleSortRh('mMed')">Médio (Meta) <span class="sort-icon" id="icon-rh-mMed">↕</span></th>
-                                <th class="px-3 py-4 sticky top-0 bg-slate-900 z-30 border-b border-slate-800 text-center sortable" onclick="handleSortRh('rMed')">Médio (Real) <span class="sort-icon" id="icon-rh-rMed">↕</span></th>
-                                <th class="px-3 py-4 sticky top-0 bg-slate-900 z-30 border-b border-slate-800 text-center bg-slate-800 sortable" onclick="handleSortRh('totalMeta')">Total Meta <span class="sort-icon" id="icon-rh-totalMeta">↕</span></th>
-                                <th class="px-3 py-4 sticky top-0 bg-slate-900 z-30 border-b border-slate-800 text-center bg-slate-800 sortable" onclick="handleSortRh('totalReal')">Total Real <span class="sort-icon" id="icon-rh-totalReal">↕</span></th>
-                                <th class="px-4 py-4 text-center sticky top-0 bg-slate-900 z-30 border-b border-slate-800 sortable" onclick="handleSortRh('isFull')">Preenchido? <span class="sort-icon" id="icon-rh-isFull">↕</span></th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- CONTEÚDO 4: GESTÃO DE COMPETÊNCIAS (Novo - Substituto do index 2) -->
-        <div id="tab-comp-content" class="hidden">
-            <!-- Sub-Abas Competências -->
-            <div class="flex gap-4 mb-6">
-                <button onclick="switchCompSubTab('visao')" id="btn-comp-visao" class="comp-subtab active px-4 py-2 text-sm font-bold uppercase tracking-wider rounded-lg border border-slate-200 transition-colors">Visão Geral (Mapa)</button>
-                <button onclick="switchCompSubTab('detalhe')" id="btn-comp-detalhe" class="comp-subtab px-4 py-2 text-sm font-bold uppercase tracking-wider rounded-lg border border-slate-200 transition-colors">Avaliação Detalhada</button>
-            </div>
-
-            <!-- Sub-Aba: Visão Geral -->
-            <div id="comp-visao-content" class="block">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    <!-- Mapa Comp -->
-                    <div class="lg:col-span-2 bg-white p-4 rounded-3xl shadow-sm border border-slate-200 relative">
-                        <div class="h-[500px] w-full rounded-2xl overflow-hidden relative z-0">
-                            <div id="map-comp"></div>
-                        </div>
-                    </div>
-                    <!-- Resumo Comp -->
-                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col h-[500px]">
-                        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 border-b pb-2">Consolidado por Distrito</h3>
-                        <div class="overflow-y-auto custom-scrollbar flex-1">
-                            <table class="w-full text-left text-[11px]" id="tabela-resumo-comp">
-                                <thead class="bg-slate-50 text-slate-500 uppercase">
-                                    <tr>
-                                        <th class="p-2 sticky top-0 bg-slate-50 cursor-pointer hover:bg-slate-100" onclick="sortCompTable(0, 'tabela-resumo-comp')">Unidade ↕</th>
-                                        <th class="p-2 sticky top-0 bg-slate-50 text-center cursor-pointer hover:bg-slate-100" onclick="sortCompTable(1, 'tabela-resumo-comp')">N. Chefe ↕</th>
-                                        <th class="p-2 sticky top-0 bg-slate-50 text-center cursor-pointer hover:bg-slate-100" onclick="sortCompTable(2, 'tabela-resumo-comp')">N. Asse. ↕</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Critérios -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-slate-50 p-5 rounded-xl border-l-4 border-blue-600 shadow-sm">
-                        <h4 class="font-bold text-blue-900 text-sm mb-2 uppercase">Critérios Avaliados</h4>
-                        <ul class="list-disc list-inside text-xs text-slate-600 grid grid-cols-2 gap-1">
-                            <li>Gestão de processos</li><li>Gestão de Projetos</li><li>Governança e conformidade</li>
-                            <li>Qualidade no SEI</li><li>Decisão em evidência</li><li>Institucional</li><li>Comunicação</li>
-                        </ul>
-                    </div>
-                    <div class="bg-slate-50 p-5 rounded-xl border-l-4 border-emerald-600 shadow-sm">
-                        <h4 class="font-bold text-emerald-900 text-sm mb-2 uppercase">Escala de Avaliação</h4>
-                        <ul class="list-none text-xs text-slate-600 grid grid-cols-2 gap-1 font-medium">
-                            <li><span class="text-red-500 font-bold">0:</span> Desconhece</li><li><span class="text-orange-500 font-bold">1:</span> Conhece Termos</li>
-                            <li><span class="text-amber-500 font-bold">2:</span> Aplica c/ erros</li><li><span class="text-blue-400 font-bold">3:</span> Aplica correta.</li>
-                            <li><span class="text-blue-600 font-bold">4:</span> Aplica e orienta</li><li><span class="text-emerald-500 font-bold">5:</span> Melhora processo</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sub-Aba: Detalhada -->
-            <div id="comp-detalhe-content" class="hidden">
-                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
-                    <div class="overflow-x-auto overflow-y-auto custom-scrollbar max-h-[600px]">
-                        <table class="w-full text-left text-[11px] border-separate border-spacing-0" id="tabela-detalhada-comp">
-                            <thead class="bg-slate-900 text-white uppercase font-bold tracking-wider">
-                                <tr>
-                                    <th class="px-3 py-4 sticky left-0 top-0 bg-slate-900 z-40 border-b border-slate-800 cursor-pointer hover:bg-slate-800" onclick="sortCompTable(0, 'tabela-detalhada-comp')">Nome ↕</th>
-                                    <th class="px-3 py-4 sticky top-0 bg-slate-900 z-30 border-b border-slate-800 cursor-pointer hover:bg-slate-800" onclick="sortCompTable(1, 'tabela-detalhada-comp')">Unidade ↕</th>
-                                    <th class="px-3 py-4 sticky top-0 bg-slate-900 z-30 border-b border-slate-800 cursor-pointer hover:bg-slate-800" onclick="sortCompTable(2, 'tabela-detalhada-comp')">Função ↕</th>
-                                    <th class="px-2 py-4 text-center sticky top-0 bg-slate-800 z-30 border-b border-slate-700" title="Processos">Proc.</th>
-                                    <th class="px-2 py-4 text-center sticky top-0 bg-slate-800 z-30 border-b border-slate-700" title="Projetos">Proj.</th>
-                                    <th class="px-2 py-4 text-center sticky top-0 bg-slate-800 z-30 border-b border-slate-700" title="Governança">Gov.</th>
-                                    <th class="px-2 py-4 text-center sticky top-0 bg-slate-800 z-30 border-b border-slate-700" title="SEI">SEI</th>
-                                    <th class="px-2 py-4 text-center sticky top-0 bg-slate-800 z-30 border-b border-slate-700" title="Decisão">Decis.</th>
-                                    <th class="px-2 py-4 text-center sticky top-0 bg-slate-800 z-30 border-b border-slate-700" title="Institucional">Inst.</th>
-                                    <th class="px-2 py-4 text-center sticky top-0 bg-slate-800 z-30 border-b border-slate-700" title="Comunicação">Comu.</th>
-                                    <th class="px-3 py-4 text-center sticky top-0 bg-blue-900 z-30 border-b border-blue-800 cursor-pointer hover:bg-blue-800" onclick="sortCompTable(10, 'tabela-detalhada-comp')">Média ↕</th>
-                                    <th class="px-4 py-4 sticky top-0 bg-slate-900 z-30 border-b border-slate-800">Observações</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- CONTEÚDO 5: ORÇAMENTO 2026 (Novo - Substituto do index 3) -->
-        <div id="tab-orc-content" class="hidden">
-            <!-- Cards Resumo -->
-            <div class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
-                <div class="bg-white p-3 rounded-xl border-l-4 border-green-500 shadow-sm">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Orçamento 26</p>
-                    <p class="text-sm font-black text-slate-800">R$ 56.050.485,30</p>
-                </div>
-                <div class="bg-white p-3 rounded-xl border-l-4 border-blue-500 shadow-sm">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total 26 + SESMT</p>
-                    <p class="text-sm font-black text-slate-800">R$ 72.419.668,84</p>
-                </div>
-                <div class="bg-white p-3 rounded-xl border-l-4 border-purple-500 shadow-sm">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Valor Total Aumento</p>
-                    <p class="text-sm font-black text-slate-800">R$ 16.382.483,21</p>
-                </div>
-                <div class="bg-white p-3 rounded-xl border-l-4 border-slate-700 shadow-sm">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Trabalhadores Adic.</p>
-                    <p class="text-sm font-black text-slate-800">112</p>
-                </div>
-                <div class="bg-white p-3 rounded-xl border-l-4 border-orange-500 shadow-sm">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Custo de Pessoal</p>
-                    <p class="text-sm font-black text-slate-800">R$ 13.592.748,75</p>
-                </div>
-                <div class="bg-white p-3 rounded-xl border-l-4 border-amber-800 shadow-sm">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Outros Custos</p>
-                    <p class="text-sm font-black text-slate-800">R$ 2.789.734,46</p>
-                </div>
-            </div>
-
-            <!-- Mapa e Tabela Orçamento -->
-            <div class="flex flex-col lg:flex-row gap-6">
-                <!-- Mapa -->
-                <div class="lg:w-2/5 bg-white p-4 rounded-3xl shadow-sm border border-slate-200 relative h-[600px] flex flex-col">
-                    <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4">Impacto por Localidade</h3>
-                    <div class="flex-1 rounded-2xl overflow-hidden relative z-0">
-                        <div id="map-orc"></div>
-                        <div class="absolute bottom-4 right-4 bg-white/90 backdrop-blur p-3 rounded-lg shadow-md border border-slate-200 z-[1000] text-[10px] font-bold">
-                            <p class="mb-2 border-b pb-1">Impacto Financeiro</p>
-                            <div class="flex items-center gap-2 mb-1"><span class="w-3 h-3 rounded-full bg-green-500 border"></span> Baixo</div>
-                            <div class="flex items-center gap-2 mb-1"><span class="w-3 h-3 rounded-full bg-blue-500 border"></span> Médio</div>
-                            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-purple-500 border"></span> Alto</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tabela -->
-                <div class="lg:w-3/5 bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col h-[600px] overflow-hidden">
-                    <div class="p-4 border-b border-slate-100 bg-slate-50 flex items-center relative">
-                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-7"></i>
-                        <input type="text" id="searchOrc" placeholder="Buscar por escritório ou cidade..." class="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 text-xs outline-none focus:ring-2 focus:ring-blue-500 transition-shadow">
-                    </div>
-                    <div class="overflow-y-auto custom-scrollbar flex-1">
-                        <table class="w-full text-left text-[11px]" id="table-orc">
-                            <thead class="bg-slate-900 text-white uppercase font-bold tracking-wider">
-                                <tr>
-                                    <th class="px-4 py-3 sticky top-0 bg-slate-900 cursor-pointer hover:bg-slate-800" onclick="sortOrcTable('esc')">Escritório ↕</th>
-                                    <th class="px-4 py-3 sticky top-0 bg-slate-900 cursor-pointer hover:bg-slate-800" onclick="sortOrcTable('cid')">Cidade ↕</th>
-                                    <th class="px-2 py-3 sticky top-0 bg-slate-900 text-center cursor-pointer hover:bg-slate-800" onclick="sortOrcTable('qtd')">Qtd ↕</th>
-                                    <th class="px-3 py-3 sticky top-0 bg-slate-900 text-right cursor-pointer hover:bg-slate-800" onclick="sortOrcTable('o26')">Orç. 2026 ↕</th>
-                                    <th class="px-3 py-3 sticky top-0 bg-slate-900 text-right cursor-pointer hover:bg-slate-800" onclick="sortOrcTable('ses')">Com SESMT ↕</th>
-                                    <th class="px-3 py-3 sticky top-0 bg-slate-900 text-right cursor-pointer hover:bg-slate-800 text-purple-300" onclick="sortOrcTable('aum')">Aumento ↕</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100" id="tbody-orc"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- CONTEÚDO 6: LINKS E ACESSO RÁPIDO -->
-        <div id="tab-links-content" class="hidden">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <a href="https://trello.com/b/xt42M1Ns/quadro-gestao-coes" target="_blank" class="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-lg hover:border-blue-300 transition-all flex items-center gap-5">
-                    <div class="bg-blue-50 p-4 rounded-xl group-hover:bg-blue-100"><i data-lucide="trello" class="w-8 h-8 text-blue-600"></i></div>
-                    <div><h3 class="text-lg font-bold text-slate-800 group-hover:text-blue-700">Trello</h3><p class="text-xs text-slate-500 font-medium uppercase">Quadro Gestão</p></div>
-                </a>
-                <a href="https://drive.google.com/drive/u/1/folders/1OoMySo0CRk_XfTPLfDCS3iXlj0HTIgDQ" target="_blank" class="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-lg hover:border-green-300 transition-all flex items-center gap-5">
-                    <div class="bg-green-50 p-4 rounded-xl group-hover:bg-green-100"><i data-lucide="dollar-sign" class="w-8 h-8 text-green-600"></i></div>
-                    <div><h3 class="text-lg font-bold text-slate-800 group-hover:text-green-700">Orçamento</h3><p class="text-xs text-slate-500 font-medium uppercase">Drive Finanças</p></div>
-                </a>
-                <a href="https://drive.google.com/drive/u/1/folders/1MMeyrSvAV448UHNdCdVB48uOAhrXFJ4u" target="_blank" class="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-lg hover:border-orange-300 transition-all flex items-center gap-5">
-                    <div class="bg-orange-50 p-4 rounded-xl group-hover:bg-orange-100"><i data-lucide="presentation" class="w-8 h-8 text-orange-600"></i></div>
-                    <div><h3 class="text-lg font-bold text-slate-800 group-hover:text-orange-700">Apresentações</h3><p class="text-xs text-slate-500 font-medium uppercase">Institucional</p></div>
-                </a>
-                <a href="https://lookerstudio.google.com/u/1/reporting/a3763307-dc94-4d56-b8df-a3b93e89d150/page/page_12345/edit" target="_blank" class="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-lg hover:border-purple-300 transition-all flex items-center gap-5">
-                    <div class="bg-purple-50 p-4 rounded-xl group-hover:bg-purple-100"><i data-lucide="bar-chart-2" class="w-8 h-8 text-purple-600"></i></div>
-                    <div><h3 class="text-lg font-bold text-slate-800 group-hover:text-purple-700">Relatório Sit.</h3><p class="text-xs text-slate-500 font-medium uppercase">Looker Studio</p></div>
-                </a>
-                <a href="https://docs.google.com/spreadsheets/d/1EWxmHVDE_Yp_DIGZ-jT9Z1BZ3KVrxM23XsxZgz4L0X0/edit#gid=0" target="_blank" class="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-lg hover:border-pink-300 transition-all flex items-center gap-5">
-                    <div class="bg-pink-50 p-4 rounded-xl group-hover:bg-pink-100"><i data-lucide="users" class="w-8 h-8 text-pink-600"></i></div>
-                    <div><h3 class="text-lg font-bold text-slate-800 group-hover:text-pink-700">Competências</h3><p class="text-xs text-slate-500 font-medium uppercase">Base de Dados</p></div>
-                </a>
-                <a href="https://docs.google.com/spreadsheets/d/1uu3oONRu_VGN-5don4E1aN7WuG-Qu0mZ2YBQeq0tTSo/edit?gid=0#gid=0" target="_blank" class="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-lg hover:border-teal-300 transition-all flex items-center gap-5">
-                    <div class="bg-teal-50 p-4 rounded-xl group-hover:bg-teal-100"><i data-lucide="table" class="w-8 h-8 text-teal-600"></i></div>
-                    <div><h3 class="text-lg font-bold text-slate-800 group-hover:text-teal-700">Planilhas COES</h3><p class="text-xs text-slate-500 font-medium uppercase">Google Sheets</p></div>
-                </a>
-            </div>
-        </div>
-
+        <h3 style="margin-top:0">Consolidado por Distrito</h3>
+        <table id="tabela-resumo">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0, 'tabela-resumo')">Unidade</th>
+                    <th onclick="sortTable(1, 'tabela-resumo')">Nota Chefe</th>
+                    <th onclick="sortTable(2, 'tabela-resumo')">Nota Asse.</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
     </div>
+</div>
 
-    <!-- SCRIPT VANILLA JS (CONTROLE GLOBAL E ABAS 2, 3, 4 e 5) -->
-    <script>
-        // --- ESTADOS GLOBAIS DE MAPAS ---
-        let mapInfra, mapComp, mapOrc;
-        let isCompLoaded = false;
-        let isOrcLoaded = false;
+<div id="page-competencias" class="content-page">
+    <h3 style="margin-top:0">Avaliação Individual de Competências</h3>
+    <div class="table-wrapper">
+        <table id="tabela-detalhada">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0, 'tabela-detalhada')">Nome</th>
+                    <th onclick="sortTable(1, 'tabela-detalhada')">Unidade</th>
+                    <th onclick="sortTable(2, 'tabela-detalhada')">Função</th>
+                    <th onclick="sortTable(3, 'tabela-detalhada')">Proc.</th>
+                    <th onclick="sortTable(4, 'tabela-detalhada')">Proj.</th>
+                    <th onclick="sortTable(5, 'tabela-detalhada')">Gov.</th>
+                    <th onclick="sortTable(6, 'tabela-detalhada')">SEI</th>
+                    <th onclick="sortTable(7, 'tabela-detalhada')">Decis.</th>
+                    <th onclick="sortTable(8, 'tabela-detalhada')">Inst.</th>
+                    <th onclick="sortTable(9, 'tabela-detalhada')">Comu.</th>
+                    <th onclick="sortTable(10, 'tabela-detalhada')">Média</th>
+                    <th onclick="sortTable(11, 'tabela-detalhada')">Observações</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
 
-        // --- CONTROLE DE ABAS PRINCIPAIS ---
-        function switchTab(tab) {
-            const tabs = ['util', 'infra', 'rh', 'comp', 'orc', 'links'];
-            
-            tabs.forEach(t => {
-                const content = document.getElementById(`tab-${t}-content`);
-                const btn = document.getElementById(`btn-${t}`);
-                if(content) { content.classList.add('hidden'); content.classList.remove('block'); }
-                if(btn) btn.classList.remove('active');
-            });
+<footer class="footer-link">
+    <a href="https://docs.google.com/spreadsheets/d/1EWxmHVDE_Yp_DIGZ-jT9Z1BZ3KVrxM23XsxZgz4L0X0/edit#gid=0" target="_blank">
+        🔗 Clique aqui para acessar a Base de Dados Completa
+    </a>
+</footer>
 
-            const activeContent = document.getElementById(`tab-${tab}-content`);
-            const activeBtn = document.getElementById(`btn-${tab}`);
-            if(activeContent) { activeContent.classList.remove('hidden'); activeContent.classList.add('block'); }
-            if(activeBtn) activeBtn.classList.add('active');
+<script>
+    function getColor(v) {
+        if (v < 2.0) return "#991b1b";      
+        if (v < 3.5) return "#ca8a04";      
+        return "#1d4ed8";                   
+    }
 
-            // Gatilhos específicos
-            if (tab === 'infra' && mapInfra) setTimeout(() => mapInfra.invalidateSize(), 100);
-            else if (tab === 'rh') renderRhTable();
-            else if (tab === 'util') setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
-            else if (tab === 'comp') {
-                if(!isCompLoaded) { initCompApp(); isCompLoaded = true; }
-                setTimeout(() => { if(mapComp) mapComp.invalidateSize(); }, 100);
-            }
-            else if (tab === 'orc') {
-                if(!isOrcLoaded) { initOrcApp(); isOrcLoaded = true; }
-                setTimeout(() => { if(mapOrc) mapOrc.invalidateSize(); }, 100);
-            }
-            else if (tab === 'links' && window.lucide) window.lucide.createIcons();
-        }
+    function getStatus(v) {
+        if (v < 2.0) return { nome: "Avaliar", cor: "#991b1b" };
+        if (v < 3.5) return { nome: "Capacitar", cor: "#ca8a04" };
+        return { nome: "Satisfatório", cor: "#1d4ed8" };
+    }
 
-        // ==========================================
-        // DADOS E LÓGICA: INFRAESTRUTURA
-        // ==========================================
-        let currentSortInfra = { key: 'id', dir: 'asc' };
+    // [Dados resumoMapa mantidos para funcionamento...]
+    const resumoMapa = [
+    { n: "Maceió", lat: -9.66, lng: -35.73, c: 4.3, a: 2.9 },
+    { n: "Altamira", lat: -3.20, lng: -52.20, c: 4.6, a: 3.9 },
+    { n: "Cruzeiro do Sul", lat: -7.63, lng: -72.66, c: 3.1, a: 3.1 },
+    { n: "São Gabriel", lat: -0.13, lng: -67.08, c: 4.0, a: 2.4 },
+    { n: "Rio Branco", lat: -9.97, lng: -67.81, c: 2.7, a: 2.7 },
+    { n: "Tabatinga", lat: -4.23, lng: -69.93, c: 4.9, a: 1.9 },
+    { n: "Macapá", lat: 0.03, lng: -51.06, c: 4.0, a: 4.0 },
+    { n: "S. Félix Araguaia", lat: -11.61, lng: -50.67, c: 2.0, a: 4.0 },
+    { n: "Salvador", lat: -12.97, lng: -38.50, c: 4.3, a: 4.3 }, // Consolidado (Média Regional/Distrital)
+    { n: "Fortaleza", lat: -3.71, lng: -38.54, c: 4.3, a: 3.7 },
+    { n: "Cuiabá", lat: -15.60, lng: -56.09, c: 4.0, a: 3.0 },
+    { n: "Belém", lat: -1.45, lng: -48.49, c: 3.1, a: 0.0 },
+    { n: "Florianópolis", lat: -27.59, lng: -48.54, c: 3.9, a: 4.0 },
+    { n: "Curitiba", lat: -25.42, lng: -49.27, c: 4.0, a: 4.0 },
+    { n: "Colíder", lat: -10.81, lng: -55.45, c: 4.0, a: 3.0 },
+    { n: "Redenção", lat: -8.02, lng: -50.03, c: 3.0, a: 3.0 },
+    { n: "Leste Roraima", lat: 2.82, lng: -60.67, c: 4.0, a: 4.0 },
+    { n: "Manaus", lat: -3.11, lng: -60.02, c: 4.9, a: 0.6 },
+    { n: "São Luís", lat: -2.53, lng: -44.30, c: 4.3, a: 4.1 },
+    { n: "Campo Grande", lat: -20.44, lng: -54.64, c: 4.1, a: 0.0 },
+    { n: "Lábrea", lat: -7.25, lng: -64.79, c: 4.0, a: 4.0 },
+    { n: "Tefé", lat: -3.35, lng: -64.71, c: 4.9, a: 4.7 },
+    { n: "Gov. Valadares", lat: -18.85, lng: -41.94, c: 4.0, a: 4.0 },
+    { n: "Parintins", lat: -2.62, lng: -56.73, c: 4.0, a: 4.0 },
+    { n: "Recife", lat: -8.05, lng: -34.88, c: 3.6, a: 3.7 },
+    { n: "Porto Velho", lat: -8.76, lng: -63.90, c: 1.1, a: 1.1 },
+    { n: "João Pessoa", lat: -7.11, lng: -34.86, c: 4.1, a: 4.1 },
+    { n: "Brasília", lat: -15.79, lng: -47.88, c: 3.0, a: 3.0 }, // Referente ao Centro-Oeste
+    { n: "Boa Vista", lat: 2.81, lng: -60.67, c: 5.0, a: 4.3 }, // Média entre Regional e Distrital
+    { n: "Itaituba", lat: -4.27, lng: -55.98, c: 5.0, a: 3.4 },
+    { n: "Palmas", lat: -10.18, lng: -48.33, c: 0.0, a: 4.0 },
+    { n: "Atalaia Norte", lat: -4.37, lng: -70.19, c: 0.0, a: 2.9 },
+    { n: "Cacoal", lat: -11.43, lng: -61.44, c: 2.0, a: 0.1 },
+    { n: "Barra Garças", lat: -15.89, lng: -52.25, c: 4.1, a: 4.0 },
+    { n: "Canarana", lat: -13.55, lng: -52.27, c: 4.1, a: 4.1 },
+    { n: "São Paulo", lat: -23.55, lng: -46.63, c: 3.6, a: 0.0 }
+];
+
+    // [Dados detComp mantidos...]
+    const detComp = [
+    { n: "Maynamy Jose Santana Da Silva", u: "Maceió", f: "Chefe", c: [3, 4, 4, 4, 5, 5, 5], med: 4.3, obs: "" },
+    { n: "Manoel Mendonca De Farias Neto", u: "Maceió", f: "Assessor", c: [2, 2, 3, 3, 3, 3, 4], med: 2.9, obs: "" },
+    { n: "Flavio Moreira De Paula", u: "Altamira", f: "Chefe", c: [4, 4, 5, 4, 5, 5, 5], med: 4.6, obs: "" },
+    { n: "Aline Cunha Gomes", u: "Altamira", f: "Assessor", c: [3, 4, 4, 4, 4, 4, 4], med: 3.9, obs: "" },
+    { n: "Ireni Herculano Uchoa Moura", u: "Cruzeiro do Sul", f: "Chefe", c: [4, 3, 3, 3, 3, 3, 3], med: 3.1, obs: "" },
+    { n: "Quedma Da Cruz Oliveira", u: "Cruzeiro do Sul", f: "Assessor", c: [4, 3, 3, 3, 3, 3, 3], med: 3.1, obs: "" },
+    { n: "Raylene Andrade Oliveira", u: "São Gabriel", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
+    { n: "Carlos Savio Da Silva Ferraz", u: "São Gabriel", f: "Assessor", c: [1, 2, 2, 2, 4, 4, 2], med: 2.4, obs: "" },
+    { n: "Raquel Passífico da Rocha", u: "Rio Branco", f: "Chefe", c: [3, 3, 3, 2, 3, 3, 2], med: 2.7, obs: "" },
+    { n: "Celino Avelino Batista Apurina", u: "Rio Branco", f: "Assessor", c: [2, 3, 3, 3, 3, 3, 2], med: 2.7, obs: "" },
+    { n: "Cristiane Ferreira da Silva", u: "Tabatinga", f: "Chefe", c: [4, 5, 5, 5, 5, 5, 5], med: 4.9, obs: "" },
+    { n: "Francisco Macedo Moçambite", u: "Tabatinga", f: "Assessor", c: [2, 2, 2, 2, 1, 2, 2], med: 1.9, obs: "Assessor com tempo de escritório e ainda não entende o seu papel institucional, ainda se posiciona como Condisi. Não possui espírito de colaboração com a chefe do escritório." },
+    { n: "Argemiro Falcao Junior", u: "Macapá", f: "Chefe", c: [4, 4, 4, 3, 4, 4, 5], med: 4.0, obs: "" },
+    { n: "Kutanan Waiapi Waiana", u: "Macapá", f: "Assessor", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
+    { n: "Samuel Yriwerana Karaja", u: "S. Félix Araguaia", f: "Chefe", c: [2, 2, 2, 2, 2, 2, 2], med: 2.0, obs: "" },
+    { n: "Ohori Haritxana De Farias Karaja", u: "S. Félix Araguaia", f: "Assessor", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
+    { n: "Andressa Carvalho Santos", u: "Salvador", f: "Chefe", c: [4, 4, 4, 4, 5, 4, 5], med: 4.3, obs: "" },
+    { n: "Ana Thereza Nunes Campos", u: "Salvador", f: "Assessor", c: [4, 4, 4, 4, 5, 4, 5], med: 4.3, obs: "" },
+    { n: "Joao Paulo Vieira Neto", u: "Fortaleza", f: "Chefe", c: [4, 4, 4, 4, 5, 4, 5], med: 4.3, obs: "" },
+    { n: "Raimundo Sebastião Rodrigues Neto", u: "Fortaleza", f: "Assessor", c: [3, 3, 3, 4, 4, 4, 5], med: 3.7, obs: "" },
+    { n: "Libério Uiagumeareu", u: "Cuiabá", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
+    { n: "Vanessa Taís de Santana Barros", u: "Cuiabá", f: "Assessor", c: [3, 3, 3, 3, 3, 3, 3], med: 3.0, obs: "" },
+    { n: "Ronaldo Ramos Nunes", u: "Belém", f: "Chefe", c: [3, 3, 3, 3, 3, 4, 3], med: 3.1, obs: "" },
+    { n: "Ednaldo Tembe", u: "Belém", f: "Assessor", c: [0, 0, 0, 0, 0, 0, 0], med: 0.0, obs: "O Ednaldo não participa das reuniões pontos de controle. Não há evidências de cumprimento integral das atividades." },
+    { n: "Rildo Mendes", u: "Florianópolis", f: "Chefe", c: [4, 4, 4, 3, 4, 4, 4], med: 3.9, obs: "" },
+    { n: "Matavitsa Kena Waura Txucarramãe", u: "Colíder", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
+    { n: "Kadjure Metyktire", u: "Colíder", f: "Assessor", c: [3, 3, 3, 3, 3, 3, 3], med: 3.0, obs: "" },
+    { n: "Tania Paiakan Kaiapó", u: "Redenção", f: "Chefe", c: [3, 3, 3, 3, 3, 3, 3], med: 3.0, obs: "" },
+    { n: "Mayara de Assis Cardoso", u: "Redenção", f: "Assessor", c: [3, 3, 3, 3, 3, 3, 3], med: 3.0, obs: "" },
+    { n: "Zenaide Peres de Sousa", u: "Leste Roraima", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
+    { n: "Jackson Nascimento Pereira", u: "Leste Roraima", f: "Assessor", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
+    { n: "Placida Beatriz Osorio", u: "Curitiba", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
+    { n: "Claudia Leite Vieira", u: "Manaus", f: "Chefe", c: [5, 4, 5, 5, 5, 5, 5], med: 4.9, obs: "" },
+    { n: "Kleuton Lopes De Matos", u: "Manaus", f: "Assessor", c: [1, 1, 1, 0, 0, 1, 0], med: 0.6, obs: "Ausente em todas as tratativas administrativas." },
+    { n: "Solange Pereira Costa", u: "São Luís", f: "Chefe", c: [4, 4, 4, 4, 5, 4, 5], med: 4.3, obs: "" },
+    { n: "Suellen Viana Marize Lopes", u: "São Luís", f: "Assessor", c: [4, 4, 4, 4, 4, 4, 5], med: 4.1, obs: "" },
+    { n: "Danilo Giupato", u: "Campo Grande", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 5], med: 4.1, obs: "" },
+    { n: "Moacyr Cañizo de Brito Filho", u: "Lábrea", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
+    { n: "Raimunda Pereira Lima", u: "Lábrea", f: "Assessor", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
+    { n: "Luiz Carlos Ferreira Penha", u: "Tefé", f: "Chefe", c: [5, 5, 5, 4, 5, 5, 5], med: 4.9, obs: "" },
+    { n: "Fábio Pereira dos Santos", u: "Tefé", f: "Assessor", c: [5, 5, 5, 4, 5, 5, 4], med: 4.7, obs: "" },
+    { n: "Ronaldo dos Santos Pena", u: "Gov. Valadares", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
+    { n: "Roberth Reytmann da Silva", u: "Gov. Valadares", f: "Assessor", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
+    { n: "Erlisson dos Santos Cidade", u: "Parintins", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
+    { n: "Andrey Thomassen Corrêa", u: "Parintins", f: "Assessor", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
+    { n: "Ailson dos Santos", u: "Recife", f: "Chefe", c: [2, 4, 4, 1, 4, 5, 5], med: 3.6, obs: "" },
+    { n: "Jacqueline da Silva Targino Soares", u: "Recife", f: "Assessor", c: [4, 3, 4, 4, 3, 4, 4], med: 3.7, obs: "" },
+    { n: "Josafá Piauhy Matreiro", u: "Porto Velho", f: "Chefe", c: [2, 1, 3, 2, 0, 0, 0], med: 1.1, obs: "" },
+    { n: "Domingos Sávio F. de Araújo", u: "Porto Velho", f: "Assessor", c: [2, 1, 3, 2, 0, 0, 0], med: 1.1, obs: "" },
+    { n: "Lilian Cristina P. da Cunha Lima", u: "João Pessoa", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 5], med: 4.1, obs: "" },
+    { n: "Robson Cassiano Soares", u: "João Pessoa", f: "Assessor", c: [4, 4, 4, 3, 4, 5, 5], med: 4.1, obs: "" },
+    { n: "Guilherme Oliveira Chaves", u: "Centro-Oeste", f: "Coordenador Regional", c: [3, 3, 3, 3, 3, 3, 3], med: 3.0, obs: "" },
+    { n: "Nadja Almeida Guimarães", u: "Salvador", f: "Coordenador Regional", c: [5, 5, 5, 3, 5, 5, 5], med: 4.7, obs: "" },
+    { n: "Ara Josefina Silveira Brasil", u: "Salvador", f: "Assessor", c: [3, 4, 3, 3, 4, 4, 4], med: 3.6, obs: "" },
+    { n: "Gerlane Albuquerque dos Santos", u: "Recife", f: "Coordenador Regional", c: [3, 4, 4, 3, 4, 4, 4], med: 3.7, obs: "" },
+    { n: "Priscila da Silva Ramos", u: "Recife", f: "Assessor", c: [3, 3, 3, 3, 3, 3, 3], med: 3.0, obs: "" },
+    { n: "Eduardo Funchal", u: "Curitiba", f: "Coordenador Regional", c: [4, 4, 4, 3, 4, 5, 5], med: 4.1, obs: "" },
+    { n: "Dione da Conceição Garcia", u: "Curitiba", f: "Assessor", c: [4, 4, 4, 3, 4, 5, 4], med: 4.0, obs: "" },
+    { n: "Rosenilda Aparecida da Silva", u: "São Paulo", f: "Coordenador Regional", c: [3, 4, 4, 2, 4, 4, 4], med: 3.6, obs: "" },
+    { n: "Cleidiane Carvalho Ribeiro", u: "Boa Vista", f: "Coordenador Regional", c: [5, 5, 5, 5, 5, 5, 5], med: 5.0, obs: "" },
+    { n: "Jesiel Rodrigues", u: "Itaituba", f: "Chefe", c: [5, 5, 5, 5, 5, 5, 5], med: 5.0, obs: "" },
+    { n: "Sindomar Waru Munduruku", u: "Itaituba", f: "Assessor", c: [3, 3, 3, 2, 4, 4, 5], med: 3.4, obs: "" },
+    { n: "Avanilson Ijoraru Dias Aires Karaja", u: "Palmas", f: "Chefe", c: [0, 0, 0, 0, 0, 0, 0], med: 0.0, obs: "Não participa dos pontos de controle." },
+    { n: "Eliene Da Silva Machado", u: "Palmas", f: "Assessor", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
+    { n: "Analimar Dias Castelo Branco", u: "Atalaia do Norte", f: "Assessor", c: [3, 3, 3, 3, 2, 2, 4], med: 2.9, obs: "" },
+    { n: "Juliana Rodrigues", u: "Cacoal", f: "Chefe", c: [2, 2, 2, 3, 3, 2, 0], med: 2.0, obs: "" },
+    { n: "Rogério Soares Chagas", u: "Cacoal", f: "Assessor", c: [0, 0, 1, 0, 0, 0, 0], med: 0.1, obs: "" },
+    { n: "Jorge Alberto Santos Tembé", u: "Barra dos Garças", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 5], med: 4.1, obs: "" },
+    { n: "Carlos Henrique Orebewe da Silva", u: "Barra dos Garças", f: "Assessor", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
+    { n: "Gilmar Wagner", u: "Canarana", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 5], med: 4.1, obs: "" },
+    { n: "Helio Roberto Andersson Ramos", u: "Canarana", f: "Assessor", c: [4, 4, 4, 4, 4, 4, 5], med: 4.1, obs: "" },
+    { n: "Maria Eliane Gonçalves da Silva", u: "Boa Vista", f: "Chefe", c: [4, 4, 4, 5, 4, 4, 5], med: 4.3, obs: "" },
+    { n: "Ana Patricia Santana de S. Moreira", u: "Boa Vista", f: "Assessor", c: [4, 4, 4, 5, 4, 4, 5], med: 4.3, obs: "" }
+];
+
+    // Função para calcular percentuais
+    function calcularPercentuais() {
+        const chefes = detComp.filter(d => d.f.includes("Chefe") || d.f.includes("Coordenador Regional"));
+        const assessores = detComp.filter(d => d.f.includes("Assessor"));
         
-        const unitsData = [
-            { id: "Distrital de Altamira/PA", city: "Altamira", coords: [-3.203, -52.206], nat: "Locado - CNPJ", mob: "Ausente", lim: "Ausente", jar: "Ausente", int: "Contratação", tel: "Funcionamento", vig: "Ausente", imp: "Ausente", sit: "Não ocupado" },
-            { id: "Distrital de Atalaia do Norte/AM", city: "Atalaia do Norte", coords: [-4.371, -70.191], nat: "Locado - CPF", mob: "Regularizado", lim: "Ausente", jar: "Ausente", int: "Contratação", tel: "Funcionamento", vig: "Ausente", imp: "Ausente", sit: "Inadequada" },
-            { id: "Distrital de Barra do Garças/MT", city: "Barra do Garças", coords: [-15.893, -52.256], nat: "Locado - CPF", mob: "Regularizado", lim: "Ausente", jar: "N/A", int: "Contratação", tel: "Funcionamento", vig: "Ausente", imp: "Ausente", sit: "Inadequada" },
-            { id: "Distrital de Belém/PA", city: "Belém", coords: [-1.455, -48.490], nat: "Coworking", mob: "Regularizado", lim: "Funcionando", jar: "Funcionando", int: "Funcionando", tel: "Funcionamento", vig: "Contratação", imp: "Ausente", sit: "Inadequada" },
-            { id: "Distrital de Cacoal/RO", city: "Cacoal", coords: [-11.438, -61.442], nat: "Locado - CNPJ", mob: "Ausente", lim: "Ausente", jar: "Ausente", int: "Contratação", tel: "Funcionamento", vig: "Ausente", imp: "Ausente", sit: "Não ocupado" },
-            { id: "Distrital de Campo Grande/MS", city: "Campo Grande", coords: [-20.469, -54.620], nat: "Coworking", mob: "Regularizado", lim: "Funcionando", jar: "Funcionando", int: "Funcionando", tel: "Funcionamento", vig: "Funcionando", imp: "Ausente", sit: "Adequada" },
-            { id: "Distrital de Colíder/MT", city: "Colíder", coords: [-10.814, -55.454], nat: "Locado - CNPJ", mob: "Regularizado", lim: "Ausente", jar: "Contratação", int: "Contratação", tel: "Funcionamento", vig: "Funcionando", imp: "Ausente", sit: "Inadequada" },
-            { id: "Distrital de Canarana/MT", city: "Canarana", coords: [-13.551, -52.270], nat: "Locado - CNPJ", mob: "Ausente", lim: "Ausente", jar: "N/A", int: "Contratação", tel: "Funcionamento", vig: "Ausente", imp: "Ausente", sit: "Inadequada" },
-            { id: "Distrital de Cruzeiro do Sul/AC", city: "Cruzeiro do Sul", coords: [-7.619, -72.673], nat: "Locado - CPF", mob: "Ausente", lim: "Ausente", jar: "Ausente", int: "Contratação", tel: "Funcionamento", vig: "Ausente", imp: "Contratação", sit: "Não ocupado" },
-            { id: "Distrital de Florianópolis/SC", city: "Florianópolis", coords: [-27.595, -48.548], nat: "Coworking", mob: "Regularizado", lim: "Funcionando", jar: "N/A", int: "Funcionando", tel: "Funcionamento", vig: "Funcionando", imp: "Contratação", sit: "Adequada" },
-            { id: "Distrital de Fortaleza/CE", city: "Fortaleza", coords: [-3.731, -38.526], nat: "Edif. Público", mob: "Planejamento", lim: "Contratação", jar: "Contratação", int: "Contratação", tel: "Funcionamento", vig: "Contratação", imp: "Contratação", sit: "Inadequada" },
-            { id: "Distrital de Governador Valadares/MG", city: "Governador Valadares", coords: [-18.851, -41.949], nat: "Coworking", mob: "Regularizado", lim: "Funcionando", jar: "N/A", int: "Funcionando", tel: "Funcionamento", vig: "Funcionando", imp: "Funcionando", sit: "Adequada" },
-            { id: "Distrital de Itaituba/PA", city: "Itaituba", coords: [-4.276, -55.983], nat: "Locado - CPF", mob: "Ausente", lim: "Ausente", jar: "Ausente", int: "Contratação", tel: "Funcionamento", vig: "Ausente", imp: "Contratação", sit: "Não ocupado" },
-            { id: "Distrital de João Pessoa/PB", city: "João Pessoa", coords: [-7.119, -34.845], nat: "Coworking", mob: "Regularizado", lim: "Funcionando", jar: "N/A", int: "Funcionando", tel: "Funcionamento", vig: "Funcionando", imp: "Contratação", sit: "Adequada" },
-            { id: "Distrital de Lábrea/AM", city: "Lábrea", coords: [-7.258, -64.797], nat: "Locado - CPF", mob: "Ausente", lim: "Ausente", jar: "Ausente", int: "Contratação", tel: "Funcionamento", vig: "Ausente", imp: "Contratação", sit: "Inadequada" },
-            { id: "Distrital de Maceió/AL", city: "Maceió", coords: [-9.665, -35.735], nat: "Coworking", mob: "Regularizado", lim: "Funcionando", jar: "N/A", int: "Funcionando", tel: "Funcionamento", vig: "Funcionando", imp: "Contratação", sit: "Adequada" },
-            { id: "Distrital de Macapá/AP", city: "Macapá", coords: [0.034, -51.066], nat: "Coworking", mob: "Regularizado", lim: "Funcionando", jar: "N/A", int: "Funcionando", tel: "Funcionamento", vig: "Funcionando", imp: "Funcionando", sit: "Adequada" },
-            { id: "Distrital de Palmas/TO", city: "Palmas", coords: [-10.184, -48.333], nat: "Coworking", mob: "Regularizado", lim: "Funcionando", jar: "N/A", int: "Funcionando", tel: "Funcionamento", vig: "Funcionando", imp: "Funcionando", sit: "Adequada" },
-            { id: "Distrital de Parintins/AM", city: "Parintins", coords: [-2.628, -56.735], nat: "Locado - CPF", mob: "Ausente", lim: "Ausente", jar: "N/A", int: "Contratação", tel: "Funcionamento", vig: "Ausente", imp: "Ausente", sit: "Não ocupado" },
-            { id: "Distrital de Porto Velho/RO", city: "Porto Velho", coords: [-8.761, -63.903], nat: "Locado - CNPJ", mob: "Regularizado", lim: "Ausente", jar: "N/A", int: "Contratação", tel: "Funcionamento", vig: "Ausente", imp: "Ausente", sit: "Não ocupado" },
-            { id: "Distrital de Rio Branco/AC", city: "Rio Branco", coords: [-9.974, -67.807], nat: "Locado - CNPJ", mob: "Ausente", lim: "Ausente", jar: "N/A", int: "Contratação", tel: "Funcionamento", vig: "Ausente", imp: "Contratação", sit: "Não ocupado" },
-            { id: "Distrital de Redenção/PA", city: "Redenção", coords: [-8.026, -50.032], nat: "Locado - CNPJ", mob: "Regularizado", lim: "Ausente", jar: "N/A", int: "Contratação", tel: "Funcionamento", vig: "Ausente", imp: "Ausente", sit: "Inadequada" },
-            { id: "Distrital de Sâo Félix do Araguaia/MT", city: "São Félix do Araguaia", coords: [-11.616, -50.669], nat: "Coworking", mob: "NÃO SE APLICA", lim: "Funcionando", jar: "N/A", int: "Funcionando", tel: "Funcionamento", vig: "Ausente", imp: "Funcionando", sit: "Adequada" },
-            { id: "Distrital de São Gabriel da Cachoeira/AM", city: "São Gabriel da Cachoeira", coords: [-0.130, -67.089], nat: "Locado - CPF", mob: "Ausente", lim: "Ausente", jar: "N/A", int: "Contratação", tel: "Funcionamento", vig: "Ausente", imp: "Funcionando", sit: "Inadequada" },
-            { id: "Distrital de Tabatinga/AM", city: "Tabatinga", coords: [-4.232, -69.938], nat: "Locado - CNPJ", mob: "Regularizado", lim: "Ausente", jar: "N/A", int: "Funcionando", tel: "Funcionamento", vig: "Ausente", imp: "Contratação", sit: "Inadequada" },
-            { id: "Distrital de Tefé/AM", city: "Tefé", coords: [-3.354, -64.711], nat: "Locado - CNPJ", mob: "Regularizado", lim: "Contratação", jar: "Contratação", int: "Funcionando", tel: "Funcionamento", vig: "Contratação", imp: "Contratação", sit: "Inadequada" },
-            { id: "Reg. Amazonas e Manaus", city: "Manaus", coords: [-3.119, -60.021], nat: "Edif. Público", mob: "NÃO SE APLICA", lim: "N/A", jar: "N/A", int: "N/A", tel: "N/A", vig: "N/A", imp: "N/A", sit: "Contratação" },
-            { id: "Reg. Bahia e Salvador", city: "Salvador", coords: [-12.971, -38.501], nat: "Coworking", mob: "Regularizado", lim: "Funcionando", jar: "Funcionando", int: "Funcionando", tel: "Funcionamento", vig: "Funcionando", imp: "Funcionando", sit: "Adequada" },
-            { id: "Reg. Centro-Oeste e Cuiabá", city: "Cuiabá", coords: [-15.601, -56.097], nat: "Coworking", mob: "Regularizado", lim: "Funcionando", jar: "N/A", int: "Funcionando", tel: "Funcionamento", vig: "Funcionando", imp: "Ausente", sit: "Adequada" },
-            { id: "Reg. Pernambuco e Recife", city: "Recife", coords: [-8.057, -34.882], nat: "Coworking", mob: "Regularizado", lim: "Funcionando", jar: "N/A", int: "Funcionando", tel: "Funcionamento", vig: "Funcionando", imp: "Ausente", sit: "Inadequada" },
-            { id: "Reg. Paraná e Curitiba", city: "Curitiba", coords: [-25.429, -49.267], nat: "Coworking", mob: "Regularizado", lim: "Funcionando", jar: "N/A", int: "Funcionando", tel: "Funcionamento", vig: "Funcionando", imp: "Ausente", sit: "Adequada" },
-            { id: "Reg. Roraima / Yanomami", city: "Boa Vista", coords: [2.823, -60.675], nat: "Locado - CNPJ", mob: "Regularizado", lim: "Contratação", jar: "N/A", int: "Contratação", tel: "Funcionamento", vig: "Funcionando", imp: "Contratação", sit: "Inadequada" },
-            { id: "Regional de São Paulo", city: "São Paulo", coords: [-23.550, -46.633], nat: "Edif. Público", mob: "NÃO SE APLICA", lim: "N/A", jar: "N/A", int: "Funcionando", tel: "Funcionamento", vig: "N/A", imp: "N/A", sit: "Não ocupado" },
-            { id: "Distrital de São Luís/MA", city: "São Luís", coords: [-2.530, -44.306], nat: "Coworking", mob: "Regularizado", lim: "Funcionando", jar: "N/A", int: "Funcionando", tel: "Funcionamento", vig: "Funcionando", imp: "Funcionando", sit: "Adequada" }
+        const statusTypes = [
+            { nome: "Satisfatório", min: 3.5, max: 5.0, cor: "#1d4ed8" },
+            { nome: "Capacitar", min: 2.0, max: 3.49, cor: "#ca8a04" },
+            { nome: "Avaliar", min: 0, max: 1.99, cor: "#991b1b" }
         ];
-
-        function calculateCompliance(u) {
-            const fields = ['mob', 'lim', 'jar', 'int', 'tel', 'vig', 'imp'];
-            let successes = 0, applicable = 0;
-            fields.forEach(f => {
-                const val = (u[f] || "").toLowerCase();
-                if (val !== 'n/a' && !val.includes('não se aplica')) {
-                    applicable++;
-                    if (val === 'sim' || val === 'funcionando' || val === 'regularizado' || val === 'funcionamento') successes++;
-                }
-            });
-            return applicable > 0 ? Math.round((successes / applicable) * 100) : 0;
-        }
-
-        function getComplianceColor(percent) {
-            if (percent >= 90) return '#16a34a'; if (percent >= 80) return '#22c55e'; if (percent >= 70) return '#84cc16';
-            if (percent >= 60) return '#eab308'; if (percent >= 50) return '#f97316'; if (percent >= 40) return '#ef4444';
-            if (percent >= 30) return '#dc2626'; if (percent >= 20) return '#b91c1c'; return '#991b1b';
-        }
-
-        function handleSort(key) {
-            if (currentSortInfra.key === key) currentSortInfra.dir = currentSortInfra.dir === 'asc' ? 'desc' : 'asc';
-            else { currentSortInfra.key = key; currentSortInfra.dir = 'asc'; }
+        
+        function calcularParaGrupo(grupo) {
+            const result = {};
+            const total = grupo.length;
             
-            document.querySelectorAll('#infraTable .sort-icon').forEach(icon => { icon.textContent = '↕'; icon.parentElement.classList.remove('active-sort'); });
-            const activeHeader = document.getElementById(`icon-${key}`);
-            if (activeHeader) { activeHeader.textContent = currentSortInfra.dir === 'asc' ? '↑' : '↓'; activeHeader.parentElement.classList.add('active-sort'); }
-            applyFiltersInfra();
-        }
-
-        function initMunicipioFilter() {
-            const municipioFilter = document.getElementById('municipioFilter');
-            if (!municipioFilter) return;
-            const municipios = [...new Set(unitsData.map(item => item.city))].sort();
-            while (municipioFilter.options.length > 1) municipioFilter.remove(1);
-            municipios.forEach(municipio => {
-                const option = document.createElement('option');
-                option.value = municipio; option.textContent = municipio;
-                municipioFilter.appendChild(option);
-            });
-        }
-
-        function renderTableInfra(data) {
-            const tbody = document.querySelector('#infraTable tbody');
-            tbody.innerHTML = '';
-            
-            const sorted = [...data].sort((a, b) => {
-                let vA = a[currentSortInfra.key], vB = b[currentSortInfra.key];
-                if (currentSortInfra.key === 'compliance') { vA = calculateCompliance(a); vB = calculateCompliance(b); }
-                if (typeof vA === 'string') { vA = vA.toLowerCase(); vB = vB.toLowerCase(); }
-                return currentSortInfra.dir === 'asc' ? (vA > vB ? 1 : -1) : (vA < vB ? 1 : -1);
-            });
-
-            sorted.forEach(item => {
-                const comp = calculateCompliance(item);
-                const bgCol = getComplianceColor(comp);
-                const statClass = (t) => {
-                    const l = (t||"").toLowerCase();
-                    if(l.includes('funciona') || l.includes('adequada') || l==='regularizado' || l==='sim') return 'bg-ok';
-                    if(l.includes('contratação') || l.includes('inadequada') || l==='planejamento') return 'bg-warning';
-                    return 'bg-error';
-                };
-                const sitClass = (t) => {
-                    const l = (t||"").toLowerCase();
-                    if(l.includes('adequada')) return 'sit-adequada';
-                    if(l.includes('inadequada')) return 'sit-inadequada';
-                    if(l.includes('não ocupado')) return 'sit-nao-ocupado';
-                    return 'sit-contratacao';
-                };
-                
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="px-4 py-3 font-bold text-slate-800 sticky left-0 bg-white border-r border-b">${item.id}</td>
-                        <td class="px-3 py-3 border-b text-center"><div class="percent-badge text-white" style="background-color: ${bgCol}; border-color: ${bgCol};">${comp}%</div></td>
-                        <td class="px-3 py-3 text-slate-500 border-b">${item.nat}</td>
-                        <td class="px-3 py-3 border-b"><span class="status-badge ${statClass(item.mob)}">${item.mob}</span></td>
-                        <td class="px-3 py-3 border-b"><span class="status-badge ${statClass(item.lim)}">${item.lim}</span></td>
-                        <td class="px-3 py-3 border-b"><span class="status-badge ${statClass(item.jar)}">${item.jar}</span></td>
-                        <td class="px-3 py-3 border-b"><span class="status-badge ${statClass(item.int)}">${item.int}</span></td>
-                        <td class="px-3 py-3 border-b"><span class="status-badge ${statClass(item.tel)}">${item.tel}</span></td>
-                        <td class="px-3 py-3 border-b"><span class="status-badge ${statClass(item.vig)}">${item.vig}</span></td>
-                        <td class="px-3 py-3 border-b"><span class="status-badge ${statClass(item.imp)}">${item.imp}</span></td>
-                        <td class="px-4 py-3 text-center border-b"><span class="status-badge ${sitClass(item.sit)} uppercase">${item.sit}</span></td>
-                    </tr>
-                `;
-            });
-        }
-
-        let markersLayerInfra;
-        function initMapInfra() {
-            mapInfra = L.map('map', { minZoom: 4, maxBounds: [[-35, -75], [5, -30]] }).setView([-15.78, -52], 4);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(mapInfra);
-            markersLayerInfra = L.layerGroup().addTo(mapInfra);
-            renderMarkersInfra(unitsData);
-        }
-
-        function renderMarkersInfra(data) {
-            markersLayerInfra.clearLayers();
-            data.forEach(u => {
-                if (!u.coords) return;
-                const color = u.sit.includes('Adequada') ? '#16a34a' : u.sit.includes('Inadequada') ? '#fb923c' : (u.sit.includes('Ocupado') ? '#dc2626' : '#3b82f6');
-                const marker = L.circleMarker(u.coords, { radius: 7, fillColor: color, color: "#fff", weight: 1.5, fillOpacity: 0.9 });
-                marker.bindTooltip(u.city, { permanent: true, direction: 'top', className: 'city-label', offset: [0, -8] });
-                markersLayerInfra.addLayer(marker);
-            });
-        }
-
-        function applyFiltersInfra() {
-            const m = document.getElementById('municipioFilter').value;
-            const n = document.getElementById('natureFilter').value;
-            const s = document.getElementById('situacaoFilter').value;
-            
-            const filtered = unitsData.filter(u => (m==='all'||u.city===m) && (n==='all'||u.nat===n) && (s==='all'||u.sit===s));
-            renderTableInfra(filtered);
-            renderMarkersInfra(filtered);
-        }
-
-        function initCharts() {
-            try { Chart.register(ChartDataLabels); } catch(e) {}
-            const situations = { "Adequada": 0, "Inadequada": 0, "Não ocupado": 0, "Contratação": 0 };
-            const naturezas = { "Coworking": 0, "Locado - CNPJ": 0, "Locado - CPF": 0, "Edif. Público": 0 };
-            const mobStatus = { "Regularizado": 0, "Ausente": 0, "Planejamento": 0, "N/A": 0 };
-            
-            const fields = ['mob', 'lim', 'jar', 'int', 'tel', 'vig', 'imp'];
-            const labels = ['Mob.', 'Limpeza', 'Jardim', 'Internet', 'Tel.', 'Vigil.', 'Impres.'];
-            const stats = { mob: { ok: 0, app: 0 }, lim: { ok: 0, app: 0 }, jar: { ok: 0, app: 0 }, int: { ok: 0, app: 0 }, tel: { ok: 0, app: 0 }, vig: { ok: 0, app: 0 }, imp: { ok: 0, app: 0 } };
-
-            unitsData.forEach(u => {
-                if (u.sit.includes("Adequada")) situations["Adequada"]++;
-                else if (u.sit.includes("Inadequada")) situations["Inadequada"]++;
-                else if (u.sit.includes("Não ocupado")) situations["Não ocupado"]++;
-                else situations["Contratação"]++;
-                if (naturezas[u.nat] !== undefined) naturezas[u.nat]++;
-                if (mobStatus[u.mob] !== undefined) mobStatus[u.mob]++; else mobStatus["N/A"]++;
-
-                fields.forEach(f => {
-                    const val = (u[f] || "").toLowerCase();
-                    if (val !== 'n/a' && !val.includes('não se aplica')) {
-                        stats[f].app++;
-                        if (val === 'sim' || val === 'funcionando' || val === 'regularizado' || val === 'funcionamento') stats[f].ok++;
-                    }
-                });
-            });
-
-            const servicesData = fields.map(f => stats[f].app > 0 ? Math.round((stats[f].ok / stats[f].app) * 100) : 0);
-            const cfg = { maintainAspectRatio: false, plugins: { datalabels: { color: '#fff', font: { weight: 'bold', size: 9 } }, legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 9 } } } } };
-            
-            new Chart(document.getElementById('situationChart'), { type: 'doughnut', data: { labels: Object.keys(situations), datasets: [{ data: Object.values(situations), backgroundColor: ['#16a34a', '#fb923c', '#dc2626', '#3b82f6'] }] }, options: cfg });
-            new Chart(document.getElementById('natureChart'), { type: 'pie', data: { labels: Object.keys(naturezas), datasets: [{ data: Object.values(naturezas), backgroundColor: ['#6366f1', '#a855f7', '#ec4899', '#64748b'] }] }, options: cfg });
-            new Chart(document.getElementById('mobDetailedChart'), { type: 'doughnut', data: { labels: Object.keys(mobStatus), datasets: [{ data: Object.values(mobStatus), backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#94a3b8'] }] }, options: cfg });
-            
-            new Chart(document.getElementById('servicesChart'), { 
-                type: 'bar', 
-                data: { labels: labels, datasets: [{ label: '% de Sucesso', data: servicesData, backgroundColor: '#3b82f6', borderRadius: 6 }] }, 
-                options: { 
-                    maintainAspectRatio: false,
-                    indexAxis: 'x',
-                    scales: {
-                        y: { beginAtZero: true, max: 115, grid: { borderDash: [2, 4] } },
-                        x: { grid: { display: false } }
-                    },
-                    plugins: { 
-                        legend: { display: false }, 
-                        datalabels: { 
-                            color: '#334155', 
-                            anchor: 'end', 
-                            align: 'top', 
-                            offset: -4,
-                            font: { weight: 'bold', size: 11 },
-                            formatter: (v) => v + '%' 
-                        } 
-                    } 
-                } 
-            });
-        }
-
-
-        // ==========================================
-        // DADOS E LÓGICA: RECURSOS HUMANOS
-        // ==========================================
-        let rhSort = { key: 'id', dir: 'asc' };
-        const rhData = [
-            { id: "Distrital de São Gabriel da Cachoeira/AM", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Distrital Leste de Roraima/RR", mSup: 4, mMed: 1, rSup: 4, rMed: 1 },
-            { id: "Distrital Yanomami", mSup: 4, mMed: 2, rSup: 1, rMed: 2 },
-            { id: "Regional de Boa Vista/RR", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Distrital de Barra do Garças/MT", mSup: 3, mMed: 1, rSup: 1, rMed: 1 },
-            { id: "Distrital de Campo Grande/MS", mSup: 4, mMed: 1, rSup: 4, rMed: 1 },
-            { id: "Distrital de Canarana/MT", mSup: 3, mMed: 1, rSup: 3, rMed: 0 },
-            { id: "Distrital de Colider/MT", mSup: 3, mMed: 1, rSup: 0, rMed: 0 },
-            { id: "Distrital de São Félix do Araguaia/MT", mSup: 3, mMed: 1, rSup: 3, rMed: 0 },
-            { id: "Distrital de Cuiabá/MT", mSup: 3, mMed: 1, rSup: 1, rMed: 0 },
-            { id: "Regional do Centro-Oeste/MT", mSup: 3, mMed: 1, rSup: 1, rMed: 0 },
-            { id: "Distrital de Florianópolis/SC", mSup: 3, mMed: 1, rSup: 2, rMed: 0 },
-            { id: "Distrital de Curitiba/PR", mSup: 4, mMed: 1, rSup: 0, rMed: 0 },
-            { id: "Regional de Curitiba/PR", mSup: 3, mMed: 1, rSup: 1, rMed: 1 },
-            { id: "Distrital de Governador Valadares/MG", mSup: 3, mMed: 1, rSup: 3, rMed: 0 },
-            { id: "Distrital de Atalaia do Norte/AM", mSup: 3, mMed: 1, rSup: 1, rMed: 1 },
-            { id: "Distrital de Cacoal/RO", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Distrital de Cruzeiro do Sul/AC", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Distrital de Lábrea/AM", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Distrital de Parintins/AM", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Distrital de Porto Velho/RO", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Distrital de Rio Branco/AC", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Distrital de Tabatinga/AM", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Distrital de Tefé/AM", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Distrital de Manaus/AM", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Regional de Manaus/AM", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Distrital de São Luiz/MA", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Distrital de Salvador/BA", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Regional de Salvador/BA", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Regional de São Paulo/SP", mSup: 3, mMed: 1, rSup: 3, rMed: 0 },
-            { id: "Distrital de Altamira/PA", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Distrital de Macapá/AP", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Distrital de Itaituba/PA", mSup: 3, mMed: 1, rSup: 3, rMed: 0 },
-            { id: "Distrital de Palmas/TO", mSup: 2, mMed: 1, rSup: 2, rMed: 1 },
-            { id: "Distrital de Redenção/PA", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Distrital de Belém/PA", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Regional do Pará/PA", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Distrital de Fortaleza/CE", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Distrital de João Pessoa/PB", mSup: 3, mMed: 1, rSup: 3, rMed: 0 },
-            { id: "Distrital de Maceió/AL", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Distrital de Recife/PE", mSup: 3, mMed: 1, rSup: 3, rMed: 1 },
-            { id: "Regional do Recife/PE", mSup: 3, mMed: 1, rSup: 3, rMed: 1 }
-        ];
-
-        function handleSortRh(key) {
-            if (rhSort.key === key) rhSort.dir = rhSort.dir === 'asc' ? 'desc' : 'asc';
-            else { rhSort.key = key; rhSort.dir = 'asc'; }
-            
-            document.querySelectorAll('#rhTable .sort-icon').forEach(icon => { icon.textContent = '↕'; icon.parentElement.classList.remove('active-sort'); });
-            const activeHeader = document.getElementById(`icon-rh-${key}`);
-            if (activeHeader) { activeHeader.textContent = rhSort.dir === 'asc' ? '↑' : '↓'; activeHeader.parentElement.classList.add('active-sort'); }
-            renderRhTable();
-        }
-
-        function renderRhTable() {
-            const tbody = document.querySelector('#rhTable tbody');
-            const search = document.getElementById('searchInputRh').value.toLowerCase();
-            tbody.innerHTML = '';
-            
-            const sorted = [...rhData.filter(i => i.id.toLowerCase().includes(search))].sort((a, b) => {
-                let vA = (rhSort.key === 'totalMeta') ? a.mSup+a.mMed : (rhSort.key === 'totalReal') ? a.rSup+a.rMed : (rhSort.key === 'isFull') ? (a.rSup+a.rMed >= a.mSup+a.mMed) : a[rhSort.key];
-                let vB = (rhSort.key === 'totalMeta') ? b.mSup+b.mMed : (rhSort.key === 'totalReal') ? b.rSup+b.rMed : (rhSort.key === 'isFull') ? (b.rSup+b.rMed >= b.mSup+b.mMed) : b[rhSort.key];
-                if (typeof vA === 'string') { vA = vA.toLowerCase(); vB = vB.toLowerCase(); }
-                return rhSort.dir === 'asc' ? (vA > vB ? 1 : -1) : (vA < vB ? 1 : -1);
-            });
-
-            sorted.forEach(item => {
-                const tm = item.mSup + item.mMed, tr = item.rSup + item.rMed, full = tr >= tm;
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100">
-                        <td class="px-4 py-3 font-bold text-slate-700 sticky left-0 bg-white border-r">${item.id}</td>
-                        <td class="px-3 py-3 text-center text-slate-400">${item.mSup}</td>
-                        <td class="px-3 py-3 text-center font-bold">${item.rSup}</td>
-                        <td class="px-3 py-3 text-center text-slate-400">${item.mMed}</td>
-                        <td class="px-3 py-3 text-center font-bold">${item.rMed}</td>
-                        <td class="px-3 py-3 text-center bg-slate-50 font-bold">${tm}</td>
-                        <td class="px-3 py-3 text-center bg-blue-50 font-bold text-blue-700">${tr}</td>
-                        <td class="px-4 py-3 text-center"><span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase ${full ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${full ? 'Sim' : 'Não'}</span></td>
-                    </tr>
-                `;
-            });
-
-            const tMeta = rhData.reduce((acc, curr) => acc + curr.mSup + curr.mMed, 0);
-            const tReal = rhData.reduce((acc, curr) => acc + curr.rSup + curr.rMed, 0);
-            document.getElementById('totalMeta').textContent = tMeta;
-            document.getElementById('totalReal').textContent = tReal;
-            document.getElementById('totalFillPercent').textContent = Math.round((tReal / tMeta) * 100) + '%';
-        }
-
-
-        // ==========================================
-        // DADOS E LÓGICA: COMPETÊNCIAS (Novo index 2)
-        // ==========================================
-        const resumoMapaComp = [
-            { n: "Maceió", lat: -9.66, lng: -35.73, c: 4.3, a: 2.9 }, { n: "Altamira", lat: -3.20, lng: -52.20, c: 4.6, a: 3.9 },
-            { n: "Cruzeiro do Sul", lat: -7.63, lng: -72.66, c: 3.1, a: 3.1 }, { n: "São Gabriel", lat: -0.13, lng: -67.08, c: 4.0, a: 2.4 },
-            { n: "Rio Branco", lat: -9.97, lng: -67.81, c: 2.7, a: 2.7 }, { n: "Tabatinga", lat: -4.23, lng: -69.93, c: 4.9, a: 1.9 },
-            { n: "Macapá", lat: 0.03, lng: -51.06, c: 4.0, a: 4.0 }, { n: "S. Félix Araguaia", lat: -11.61, lng: -50.67, c: 2.0, a: 4.0 },
-            { n: "Salvador", lat: -12.97, lng: -38.50, c: 4.3, a: 4.3 }, { n: "Fortaleza", lat: -3.71, lng: -38.54, c: 4.3, a: 3.7 },
-            { n: "Cuiabá", lat: -15.60, lng: -56.09, c: 4.0, a: 3.0 }, { n: "Belém", lat: -1.45, lng: -48.49, c: 3.1, a: 0.0 },
-            { n: "Florianópolis", lat: -27.59, lng: -48.54, c: 3.9, a: 4.0 }, { n: "Curitiba", lat: -25.42, lng: -49.27, c: 4.0, a: 4.0 },
-            { n: "Colíder", lat: -10.81, lng: -55.45, c: 4.0, a: 3.0 }, { n: "Redenção", lat: -8.02, lng: -50.03, c: 3.0, a: 3.0 },
-            { n: "Leste Roraima", lat: 2.82, lng: -60.67, c: 4.0, a: 4.0 }, { n: "Manaus", lat: -3.11, lng: -60.02, c: 4.9, a: 0.6 },
-            { n: "São Luís", lat: -2.53, lng: -44.30, c: 4.3, a: 4.1 }, { n: "Campo Grande", lat: -20.44, lng: -54.64, c: 4.1, a: 0.0 },
-            { n: "Lábrea", lat: -7.25, lng: -64.79, c: 4.0, a: 4.0 }, { n: "Tefé", lat: -3.35, lng: -64.71, c: 4.9, a: 4.7 },
-            { n: "Gov. Valadares", lat: -18.85, lng: -41.94, c: 4.0, a: 4.0 }, { n: "Parintins", lat: -2.62, lng: -56.73, c: 4.0, a: 4.0 },
-            { n: "Recife", lat: -8.05, lng: -34.88, c: 3.6, a: 3.7 }, { n: "Porto Velho", lat: -8.76, lng: -63.90, c: 1.1, a: 1.1 },
-            { n: "João Pessoa", lat: -7.11, lng: -34.86, c: 4.1, a: 4.1 }, { n: "Brasília", lat: -15.79, lng: -47.88, c: 3.0, a: 3.0 },
-            { n: "Boa Vista", lat: 2.81, lng: -60.67, c: 5.0, a: 4.3 }, { n: "Itaituba", lat: -4.27, lng: -55.98, c: 5.0, a: 3.4 },
-            { n: "Palmas", lat: -10.18, lng: -48.33, c: 0.0, a: 4.0 }, { n: "Atalaia Norte", lat: -4.37, lng: -70.19, c: 0.0, a: 2.9 },
-            { n: "Cacoal", lat: -11.43, lng: -61.44, c: 2.0, a: 0.1 }, { n: "Barra Garças", lat: -15.89, lng: -52.25, c: 4.1, a: 4.0 },
-            { n: "Canarana", lat: -13.55, lng: -52.27, c: 4.1, a: 4.1 }, { n: "São Paulo", lat: -23.55, lng: -46.63, c: 3.6, a: 0.0 }
-        ];
-
-        const detCompData = [
-            { n: "Maynamy Jose Santana Da Silva", u: "Maceió", f: "Chefe", c: [3, 4, 4, 4, 5, 5, 5], med: 4.3, obs: "" },
-            { n: "Manoel Mendonca De Farias Neto", u: "Maceió", f: "Assessor", c: [2, 2, 3, 3, 3, 3, 4], med: 2.9, obs: "" },
-            { n: "Flavio Moreira De Paula", u: "Altamira", f: "Chefe", c: [4, 4, 5, 4, 5, 5, 5], med: 4.6, obs: "" },
-            { n: "Aline Cunha Gomes", u: "Altamira", f: "Assessor", c: [3, 4, 4, 4, 4, 4, 4], med: 3.9, obs: "" },
-            { n: "Ireni Herculano Uchoa Moura", u: "Cruzeiro do Sul", f: "Chefe", c: [4, 3, 3, 3, 3, 3, 3], med: 3.1, obs: "" },
-            { n: "Quedma Da Cruz Oliveira", u: "Cruzeiro do Sul", f: "Assessor", c: [4, 3, 3, 3, 3, 3, 3], med: 3.1, obs: "" },
-            { n: "Raylene Andrade Oliveira", u: "São Gabriel", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
-            { n: "Carlos Savio Da Silva Ferraz", u: "São Gabriel", f: "Assessor", c: [1, 2, 2, 2, 4, 4, 2], med: 2.4, obs: "" },
-            { n: "Raquel Passífico da Rocha", u: "Rio Branco", f: "Chefe", c: [3, 3, 3, 2, 3, 3, 2], med: 2.7, obs: "" },
-            { n: "Celino Avelino Batista Apurina", u: "Rio Branco", f: "Assessor", c: [2, 3, 3, 3, 3, 3, 2], med: 2.7, obs: "" },
-            { n: "Cristiane Ferreira da Silva", u: "Tabatinga", f: "Chefe", c: [4, 5, 5, 5, 5, 5, 5], med: 4.9, obs: "" },
-            { n: "Francisco Macedo Moçambite", u: "Tabatinga", f: "Assessor", c: [2, 2, 2, 2, 1, 2, 2], med: 1.9, obs: "Não possui espírito de colaboração." },
-            { n: "Argemiro Falcao Junior", u: "Macapá", f: "Chefe", c: [4, 4, 4, 3, 4, 4, 5], med: 4.0, obs: "" },
-            { n: "Kutanan Waiapi Waiana", u: "Macapá", f: "Assessor", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
-            { n: "Samuel Yriwerana Karaja", u: "S. Félix Araguaia", f: "Chefe", c: [2, 2, 2, 2, 2, 2, 2], med: 2.0, obs: "" },
-            { n: "Ohori Haritxana De Farias Karaja", u: "S. Félix Araguaia", f: "Assessor", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
-            { n: "Andressa Carvalho Santos", u: "Salvador", f: "Chefe", c: [4, 4, 4, 4, 5, 4, 5], med: 4.3, obs: "" },
-            { n: "Ana Thereza Nunes Campos", u: "Salvador", f: "Assessor", c: [4, 4, 4, 4, 5, 4, 5], med: 4.3, obs: "" },
-            { n: "Joao Paulo Vieira Neto", u: "Fortaleza", f: "Chefe", c: [4, 4, 4, 4, 5, 4, 5], med: 4.3, obs: "" },
-            { n: "Raimundo Sebastião Rodrigues Neto", u: "Fortaleza", f: "Assessor", c: [3, 3, 3, 4, 4, 4, 5], med: 3.7, obs: "" },
-            { n: "Libério Uiagumeareu", u: "Cuiabá", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
-            { n: "Vanessa Taís de Santana Barros", u: "Cuiabá", f: "Assessor", c: [3, 3, 3, 3, 3, 3, 3], med: 3.0, obs: "" },
-            { n: "Ronaldo Ramos Nunes", u: "Belém", f: "Chefe", c: [3, 3, 3, 3, 3, 4, 3], med: 3.1, obs: "" },
-            { n: "Ednaldo Tembe", u: "Belém", f: "Assessor", c: [0, 0, 0, 0, 0, 0, 0], med: 0.0, obs: "Não participa das reuniões." },
-            { n: "Rildo Mendes", u: "Florianópolis", f: "Chefe", c: [4, 4, 4, 3, 4, 4, 4], med: 3.9, obs: "" },
-            { n: "Matavitsa Kena Waura Txucarramãe", u: "Colíder", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
-            { n: "Kadjure Metyktire", u: "Colíder", f: "Assessor", c: [3, 3, 3, 3, 3, 3, 3], med: 3.0, obs: "" },
-            { n: "Tania Paiakan Kaiapó", u: "Redenção", f: "Chefe", c: [3, 3, 3, 3, 3, 3, 3], med: 3.0, obs: "" },
-            { n: "Mayara de Assis Cardoso", u: "Redenção", f: "Assessor", c: [3, 3, 3, 3, 3, 3, 3], med: 3.0, obs: "" },
-            { n: "Zenaide Peres de Sousa", u: "Leste Roraima", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
-            { n: "Jackson Nascimento Pereira", u: "Leste Roraima", f: "Assessor", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
-            { n: "Placida Beatriz Osorio", u: "Curitiba", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
-            { n: "Claudia Leite Vieira", u: "Manaus", f: "Chefe", c: [5, 4, 5, 5, 5, 5, 5], med: 4.9, obs: "" },
-            { n: "Kleuton Lopes De Matos", u: "Manaus", f: "Assessor", c: [1, 1, 1, 0, 0, 1, 0], med: 0.6, obs: "Ausente." },
-            { n: "Solange Pereira Costa", u: "São Luís", f: "Chefe", c: [4, 4, 4, 4, 5, 4, 5], med: 4.3, obs: "" },
-            { n: "Suellen Viana Marize Lopes", u: "São Luís", f: "Assessor", c: [4, 4, 4, 4, 4, 4, 5], med: 4.1, obs: "" },
-            { n: "Danilo Giupato", u: "Campo Grande", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 5], med: 4.1, obs: "" },
-            { n: "Moacyr Cañizo de Brito Filho", u: "Lábrea", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
-            { n: "Raimunda Pereira Lima", u: "Lábrea", f: "Assessor", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
-            { n: "Luiz Carlos Ferreira Penha", u: "Tefé", f: "Chefe", c: [5, 5, 5, 4, 5, 5, 5], med: 4.9, obs: "" },
-            { n: "Fábio Pereira dos Santos", u: "Tefé", f: "Assessor", c: [5, 5, 5, 4, 5, 5, 4], med: 4.7, obs: "" },
-            { n: "Ronaldo dos Santos Pena", u: "Gov. Valadares", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
-            { n: "Roberth Reytmann da Silva", u: "Gov. Valadares", f: "Assessor", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
-            { n: "Erlisson dos Santos Cidade", u: "Parintins", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
-            { n: "Andrey Thomassen Corrêa", u: "Parintins", f: "Assessor", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
-            { n: "Ailson dos Santos", u: "Recife", f: "Chefe", c: [2, 4, 4, 1, 4, 5, 5], med: 3.6, obs: "" },
-            { n: "Jacqueline da Silva Targino Soares", u: "Recife", f: "Assessor", c: [4, 3, 4, 4, 3, 4, 4], med: 3.7, obs: "" },
-            { n: "Josafá Piauhy Matreiro", u: "Porto Velho", f: "Chefe", c: [2, 1, 3, 2, 0, 0, 0], med: 1.1, obs: "" },
-            { n: "Domingos Sávio F. de Araújo", u: "Porto Velho", f: "Assessor", c: [2, 1, 3, 2, 0, 0, 0], med: 1.1, obs: "" },
-            { n: "Lilian Cristina P. da Cunha Lima", u: "João Pessoa", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 5], med: 4.1, obs: "" },
-            { n: "Robson Cassiano Soares", u: "João Pessoa", f: "Assessor", c: [4, 4, 4, 3, 4, 5, 5], med: 4.1, obs: "" },
-            { n: "Guilherme Oliveira Chaves", u: "Centro-Oeste", f: "Coordenador Regional", c: [3, 3, 3, 3, 3, 3, 3], med: 3.0, obs: "" },
-            { n: "Nadja Almeida Guimarães", u: "Salvador", f: "Coordenador Regional", c: [5, 5, 5, 3, 5, 5, 5], med: 4.7, obs: "" },
-            { n: "Ara Josefina Silveira Brasil", u: "Salvador", f: "Assessor", c: [3, 4, 3, 3, 4, 4, 4], med: 3.6, obs: "" },
-            { n: "Gerlane Albuquerque dos Santos", u: "Recife", f: "Coordenador Regional", c: [3, 4, 4, 3, 4, 4, 4], med: 3.7, obs: "" },
-            { n: "Priscila da Silva Ramos", u: "Recife", f: "Assessor", c: [3, 3, 3, 3, 3, 3, 3], med: 3.0, obs: "" },
-            { n: "Eduardo Funchal", u: "Curitiba", f: "Coordenador Regional", c: [4, 4, 4, 3, 4, 5, 5], med: 4.1, obs: "" },
-            { n: "Dione da Conceição Garcia", u: "Curitiba", f: "Assessor", c: [4, 4, 4, 3, 4, 5, 4], med: 4.0, obs: "" },
-            { n: "Rosenilda Aparecida da Silva", u: "São Paulo", f: "Coordenador Regional", c: [3, 4, 4, 2, 4, 4, 4], med: 3.6, obs: "" },
-            { n: "Cleidiane Carvalho Ribeiro", u: "Boa Vista", f: "Coordenador Regional", c: [5, 5, 5, 5, 5, 5, 5], med: 5.0, obs: "" },
-            { n: "Jesiel Rodrigues", u: "Itaituba", f: "Chefe", c: [5, 5, 5, 5, 5, 5, 5], med: 5.0, obs: "" },
-            { n: "Sindomar Waru Munduruku", u: "Itaituba", f: "Assessor", c: [3, 3, 3, 2, 4, 4, 5], med: 3.4, obs: "" },
-            { n: "Avanilson Ijoraru Dias Aires Karaja", u: "Palmas", f: "Chefe", c: [0, 0, 0, 0, 0, 0, 0], med: 0.0, obs: "Não participa." },
-            { n: "Eliene Da Silva Machado", u: "Palmas", f: "Assessor", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
-            { n: "Analimar Dias Castelo Branco", u: "Atalaia do Norte", f: "Assessor", c: [3, 3, 3, 3, 2, 2, 4], med: 2.9, obs: "" },
-            { n: "Juliana Rodrigues", u: "Cacoal", f: "Chefe", c: [2, 2, 2, 3, 3, 2, 0], med: 2.0, obs: "" },
-            { n: "Rogério Soares Chagas", u: "Cacoal", f: "Assessor", c: [0, 0, 1, 0, 0, 0, 0], med: 0.1, obs: "" },
-            { n: "Jorge Alberto Santos Tembé", u: "Barra dos Garças", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 5], med: 4.1, obs: "" },
-            { n: "Carlos Henrique Orebewe da Silva", u: "Barra dos Garças", f: "Assessor", c: [4, 4, 4, 4, 4, 4, 4], med: 4.0, obs: "" },
-            { n: "Gilmar Wagner", u: "Canarana", f: "Chefe", c: [4, 4, 4, 4, 4, 4, 5], med: 4.1, obs: "" },
-            { n: "Helio Roberto Andersson Ramos", u: "Canarana", f: "Assessor", c: [4, 4, 4, 4, 4, 4, 5], med: 4.1, obs: "" },
-            { n: "Maria Eliane Gonçalves da Silva", u: "Boa Vista", f: "Chefe", c: [4, 4, 4, 5, 4, 4, 5], med: 4.3, obs: "" },
-            { n: "Ana Patricia Santana de S. Moreira", u: "Boa Vista", f: "Assessor", c: [4, 4, 4, 5, 4, 4, 5], med: 4.3, obs: "" }
-        ];
-
-        function getCompColor(v) {
-            if (v < 2.0) return "#ef4444"; // red-500
-            if (v < 3.5) return "#f59e0b"; // amber-500
-            return "#3b82f6"; // blue-500
-        }
-
-        // Sub-Tabs Comp
-        function switchCompSubTab(tab) {
-            document.getElementById('comp-visao-content').classList.add('hidden');
-            document.getElementById('comp-detalhe-content').classList.add('hidden');
-            document.getElementById('btn-comp-visao').classList.remove('active');
-            document.getElementById('btn-comp-detalhe').classList.remove('active');
-            
-            document.getElementById(`comp-${tab}-content`).classList.remove('hidden');
-            document.getElementById(`btn-comp-${tab}`).classList.add('active');
-            if(tab === 'visao' && mapComp) setTimeout(() => mapComp.invalidateSize(), 100);
-        }
-
-        function initCompApp() {
-            // Mapa
-            mapComp = L.map('map-comp', { minZoom: 4, maxBounds: [[-35, -75], [5, -30]] }).setView([-15.0, -55.0], 4);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(mapComp);
-            
-            // Render Tabelas
-            const tbodyResumo = document.querySelector('#tabela-resumo-comp tbody');
-            resumoMapaComp.forEach(d => {
-                const med = (d.c + d.a) / 2;
-                const color = getCompColor(med);
-                
-                // Marcador no mapa
-                const marker = L.circleMarker([d.lat, d.lng], { radius: 8, fillColor: color, color: "#fff", weight: 2, fillOpacity: 0.9 }).addTo(mapComp);
-                marker.bindTooltip(d.n, { permanent: true, direction: 'top', offset: [0, -8], className: 'city-label' });
-                marker.on('mouseover', e => {
-                    const content = `<div class="popup-data"><div class="popup-title">${d.n}</div>Nota Chefe: <b>${d.c.toFixed(1)}</b><br>Nota Assessor: <b>${d.a.toFixed(1)}</b><br>Média: <b>${med.toFixed(1)}</b></div>`;
-                    L.popup({ closeButton: false, className: 'custom-popup-comp', offset: [0, -10] }).setLatLng(e.latlng).setContent(content).openOn(mapComp);
-                });
-                marker.on('mouseout', () => mapComp.closePopup());
-
-                // Linha tabela resumo
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 border-b border-slate-100 cursor-pointer";
-                tr.innerHTML = `<td class="p-2 font-bold">${d.n}</td><td class="p-2 text-center"><span class="nota-badge-comp" style="background:${getCompColor(d.c)}">${d.c.toFixed(1)}</span></td><td class="p-2 text-center"><span class="nota-badge-comp" style="background:${getCompColor(d.a)}">${d.a.toFixed(1)}</span></td>`;
-                tr.onclick = () => mapComp.setView([d.lat, d.lng], 6);
-                tbodyResumo.appendChild(tr);
-            });
-
-            // Tabela Detalhada
-            const tbodyDet = document.querySelector('#tabela-detalhada-comp tbody');
-            detCompData.forEach(d => {
-                let cols = d.c.map(v => `<td class="px-2 py-3 text-center border-b"><span class="nota-badge-comp" style="background:${getCompColor(v)}">${v}</span></td>`).join('');
-                tbodyDet.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="px-3 py-3 font-bold text-slate-800 sticky left-0 bg-white border-r border-b">${d.n}</td>
-                        <td class="px-3 py-3 text-slate-600 border-b">${d.u}</td>
-                        <td class="px-3 py-3 text-slate-500 text-xs border-b">${d.f}</td>
-                        ${cols}
-                        <td class="px-3 py-3 text-center border-b bg-blue-50/50"><span class="nota-badge-comp" style="background:${getCompColor(d.med)}">${d.med.toFixed(1)}</span></td>
-                        <td class="px-4 py-3 text-xs text-slate-500 italic border-b">${d.obs}</td>
-                    </tr>
-                `;
-            });
-            destacarNotasVerde();
-        }
-
-        let sortCompOrders = {};
-        function sortCompTable(colIdx, tableId) {
-            const table = document.getElementById(tableId);
-            const tbody = table.querySelector('tbody');
-            const rows = Array.from(tbody.rows);
-            const key = tableId + colIdx;
-            sortCompOrders[key] = sortCompOrders[key] === 'asc' ? 'desc' : 'asc';
-            const dir = sortCompOrders[key];
-            
-            rows.sort((a, b) => {
-                let vA = a.cells[colIdx].innerText.trim().replace(',', '.');
-                let vB = b.cells[colIdx].innerText.trim().replace(',', '.');
-                vA = isNaN(vA) ? vA.toLowerCase() : parseFloat(vA);
-                vB = isNaN(vB) ? vB.toLowerCase() : parseFloat(vB);
-                if (vA < vB) return dir === 'asc' ? -1 : 1;
-                if (vA > vB) return dir === 'asc' ? 1 : -1;
-                return 0;
-            });
-            tbody.append(...rows);
-        }
-
-        function destacarNotasVerde() {
-            const nomesEspecificos = ["Ricardo Cavalcante Barbosa Junior", "Herodoto Jean de Sales"];
-            const funcoesUnidades = [{ unidade: "Campo Grande", funcao: "Assessor" }, { unidade: "Atalaia do Norte", funcao: "Chefe" }];
-            
-            document.querySelectorAll('#tabela-detalhada-comp tbody tr').forEach(linha => {
-                const nome = linha.cells[0].textContent.trim();
-                const unid = linha.cells[1].textContent.trim();
-                const func = linha.cells[2].textContent.trim();
-                if (nomesEspecificos.includes(nome) || funcoesUnidades.some(i => unid === i.unidade && func === i.funcao)) {
-                    for (let i = 3; i <= 10; i++) if (linha.cells[i]) {
-                        const bg = linha.cells[i].querySelector('.nota-badge-comp');
-                        if (bg) { bg.style.background = '#16a34a'; bg.style.color = 'white'; }
-                    }
-                }
+            statusTypes.forEach(status => {
+                const count = grupo.filter(d => d.med >= status.min && d.med <= status.max).length;
+                const percent = total > 0 ? ((count / total) * 100).toFixed(1) : "0.0";
+                result[status.nome] = { percent, count, total, cor: status.cor };
             });
             
-            document.querySelectorAll('#tabela-resumo-comp tbody tr').forEach(linha => {
-                const unid = linha.cells[0].textContent.trim();
-                if (unid === "Campo Grande") {
-                    const bg = linha.cells[2].querySelector('.nota-badge-comp');
-                    if (bg) bg.style.background = '#16a34a';
-                }
-                if (unid === "Atalaia Norte") {
-                    const bg = linha.cells[1].querySelector('.nota-badge-comp');
-                    if (bg) bg.style.background = '#16a34a';
-                }
+            return result;
+        }
+        
+        return {
+            chefes: calcularParaGrupo(chefes),
+            assessores: calcularParaGrupo(assessores)
+        };
+    }
+    
+    // Função para criar a legenda com status integrados
+    function criarLegendaComStatus() {
+        const container = L.DomUtil.create('div', 'map-legend-container');
+        
+        // Legenda principal
+        const legendDiv = L.DomUtil.create('div', 'map-legend');
+        legendDiv.innerHTML = `
+            <div class="legend-title">📊 Status de Competência</div>
+            <div class="legend-item"><div class="legend-color" style="background:#1d4ed8"></div> Satisfatório (>= 3.5)</div>
+            <div class="legend-item"><div class="legend-color" style="background:#ca8a04"></div> Capacitar (2.0 - 3.4)</div>
+            <div class="legend-item"><div class="legend-color" style="background:#991b1b"></div> Avaliar (< 2.0)</div>
+        `;
+        
+        container.appendChild(legendDiv);
+        
+        // Calcular percentuais
+        const percentuais = calcularPercentuais();
+        
+        // Caixa de status dos chefes e assessores
+        const statusDiv = L.DomUtil.create('div', 'status-box');
+        statusDiv.innerHTML = `
+            <div class="legend-title">👥 Distribuição por Função</div>
+            <div class="status-grid">
+                <div class="status-section">
+                    <div class="legend-title" style="font-size:11px; margin-bottom:5px;">👑 Chefes</div>
+                    <div class="status-row">
+                        <div class="status-info">
+                            <div class="legend-color" style="background:#1d4ed8"></div>
+                            <span class="status-label">Satisfatório</span>
+                        </div>
+                        <div class="status-count">${percentuais.chefes["Satisfatório"].percent}%</div>
+                    </div>
+                    <div class="status-row">
+                        <div class="status-info">
+                            <div class="legend-color" style="background:#ca8a04"></div>
+                            <span class="status-label">Capacitar</span>
+                        </div>
+                        <div class="status-count">${percentuais.chefes["Capacitar"].percent}%</div>
+                    </div>
+                    <div class="status-row">
+                        <div class="status-info">
+                            <div class="legend-color" style="background:#991b1b"></div>
+                            <span class="status-label">Avaliar</span>
+                        </div>
+                        <div class="status-count">${percentuais.chefes["Avaliar"].percent}%</div>
+                    </div>
+                </div>
+                <div class="status-section">
+                    <div class="legend-title" style="font-size:11px; margin-bottom:5px;">👥 Assessores</div>
+                    <div class="status-row">
+                        <div class="status-info">
+                            <div class="legend-color" style="background:#1d4ed8"></div>
+                            <span class="status-label">Satisfatório</span>
+                        </div>
+                        <div class="status-count">${percentuais.assessores["Satisfatório"].percent}%</div>
+                    </div>
+                    <div class="status-row">
+                        <div class="status-info">
+                            <div class="legend-color" style="background:#ca8a04"></div>
+                            <span class="status-label">Capacitar</span>
+                        </div>
+                        <div class="status-count">${percentuais.assessores["Capacitar"].percent}%</div>
+                    </div>
+                    <div class="status-row">
+                        <div class="status-info">
+                            <div class="legend-color" style="background:#991b1b"></div>
+                            <span class="status-label">Avaliar</span>
+                        </div>
+                        <div class="status-count">${percentuais.assessores["Avaliar"].percent}%</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(statusDiv);
+        
+        return container;
+    }
+
+    const map = L.map('map').setView([-15.0, -55.0], 4);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+
+    // Adicionar legenda customizada com status
+    L.Control.StatusLegend = L.Control.extend({
+        onAdd: function(map) {
+            return criarLegendaComStatus();
+        }
+    });
+    
+    L.control.statusLegend = function(opts) {
+        return new L.Control.StatusLegend(opts);
+    };
+    
+    L.control.statusLegend({ position: 'bottomleft' }).addTo(map);
+
+    function initResumo() {
+        const tbody = document.querySelector('#tabela-resumo tbody');
+        tbody.innerHTML = '';
+        resumoMapa.forEach(d => {
+            const med = (d.c + d.a) / 2;
+            const color = getColor(med);
+            const marker = L.circleMarker([d.lat, d.lng], { radius: 8, fillColor: color, color: "#fff", weight: 2, fillOpacity: 0.9 }).addTo(map);
+
+            marker.on('mouseover', function (e) {
+                const content = `
+                    <div class="popup-data">
+                        <div class="popup-title">${d.n}</div>
+                        Nota Chefe: <b>${d.c.toFixed(1)}</b><br>
+                        Nota Assessor: <b>${d.a.toFixed(1)}</b><br>
+                        Média Geral: <b>${med.toFixed(1)}</b>
+                    </div>`;
+                L.popup({ closeButton: false, className: 'custom-popup', offset: [0, -10] })
+                    .setLatLng(e.latlng).setContent(content).openOn(map);
             });
-        }
-
-        // ==========================================
-        // DADOS E LÓGICA: ORÇAMENTO 2026 (Novo index 3)
-        // ==========================================
-        const orcData = [
-            {esc: "Distrital", cid: "Boa Vista", o26: 3682633.02, ses: 5100169.41, aum: 1417536.39, qtd: 10, lat: 2.82, lng: -60.67},
-            {esc: "Distrital", cid: "Tabatinga", o26: 1646657.46, ses: 2716281.74, aum: 1069624.28, qtd: 8, lat: -4.23, lng: -69.94},
-            {esc: "Distrital", cid: "Florianópolis", o26: 1363547.36, ses: 2291928.52, aum: 928381.16, qtd: 4, lat: -27.59, lng: -48.54},
-            {esc: "Distrital", cid: "Manaus", o26: 1332491.72, ses: 2270040.63, aum: 937548.91, qtd: 4, lat: -3.11, lng: -60.02},
-            {esc: "Distrital", cid: "Recife", o26: 1169950.19, ses: 1906253.36, aum: 736303.16, qtd: 4, lat: -8.05, lng: -34.88},
-            {esc: "Distrital", cid: "Porto Velho", o26: 1286447.36, ses: 2065326.33, aum: 778878.97, qtd: 4, lat: -8.76, lng: -63.90},
-            {esc: "Distrital", cid: "Salvador", o26: 1173094.36, ses: 1967453.36, aum: 794359.00, qtd: 4, lat: -12.97, lng: -38.50},
-            {esc: "Distrital", cid: "Campo Grande", o26: 1319581.36, ses: 2185085.46, aum: 865504.10, qtd: 6, lat: -20.44, lng: -54.64},
-            {esc: "Distrital", cid: "Curitiba", o26: 1360965.00, ses: 1821057.73, aum: 460092.73, qtd: 6, lat: -25.42, lng: -49.27},
-            {esc: "Distrital", cid: "São Luiz", o26: 1380347.36, ses: 1747645.16, aum: 367297.80, qtd: 6, lat: -2.53, lng: -44.30},
-            {esc: "Distrital", cid: "Gov. Valadares", o26: 1190387.36, ses: 1658803.76, aum: 468416.40, qtd: 4, lat: -18.85, lng: -41.94},
-            {esc: "Distrital", cid: "Tefé", o26: 1317318.10, ses: 1795725.03, aum: 478406.93, qtd: 4, lat: -3.35, lng: -64.71},
-            {esc: "Distrital", cid: "Barra do Garças", o26: 1218351.46, ses: 1709704.39, aum: 491352.93, qtd: 4, lat: -15.89, lng: -52.25},
-            {esc: "Distrital", cid: "São Gabriel da Cachoeira", o26: 1455047.36, ses: 1991053.36, aum: 536006.00, qtd: 4, lat: -0.13, lng: -67.08},
-            {esc: "Distrital", cid: "Cuiabá", o26: 1174924.00, ses: 1624030.26, aum: 449106.26, qtd: 4, lat: -15.60, lng: -56.09},
-            {esc: "Distrital", cid: "Belém", o26: 1474781.36, ses: 1925104.10, aum: 450322.74, qtd: 4, lat: -1.45, lng: -48.50},
-            {esc: "Distrital", cid: "Canarana", o26: 1433247.36, ses: 1832467.40, aum: 399220.04, qtd: 2, lat: -13.55, lng: -52.27},
-            {esc: "Distrital", cid: "Macapá", o26: 1424147.36, ses: 1798554.43, aum: 374407.07, qtd: 2, lat: 0.03, lng: -51.06},
-            {esc: "Distrital", cid: "Rio Branco", o26: 1379947.36, ses: 1664154.43, aum: 284207.07, qtd: 2, lat: -9.97, lng: -67.81},
-            {esc: "Distrital", cid: "Cacoal", o26: 1324513.36, ses: 1626354.43, aum: 301841.07, qtd: 2, lat: -11.43, lng: -61.44},
-            {esc: "Distrital", cid: "Lábrea", o26: 1527281.36, ses: 1857847.36, aum: 330566.00, qtd: 2, lat: -7.25, lng: -64.79},
-            {esc: "Distrital", cid: "Fortaleza", o26: 1390147.36, ses: 1657954.43, aum: 267807.07, qtd: 2, lat: -3.71, lng: -38.54},
-            {esc: "Distrital", cid: "Cruzeiro do Sul", o26: 1389647.36, ses: 1637154.43, aum: 247507.07, qtd: 2, lat: -7.63, lng: -72.67},
-            {esc: "Distrital", cid: "Redenção", o26: 1191383.46, ses: 1433830.53, aum: 242447.07, qtd: 2, lat: -8.02, lng: -50.03},
-            {esc: "Distrital", cid: "Altamira", o26: 1361007.36, ses: 1572015.65, aum: 211008.29, qtd: 2, lat: -3.20, lng: -52.20},
-            {esc: "Distrital", cid: "Atalaia do Norte", o26: 1160548.90, ses: 1369266.37, aum: 208717.47, qtd: 2, lat: -4.37, lng: -70.19},
-            {esc: "Distrital", cid: "Itaituba", o26: 1461047.36, ses: 1653154.43, aum: 192107.07, qtd: 2, lat: -4.27, lng: -55.98},
-            {esc: "Distrital", cid: "Maceió", o26: 1352347.36, ses: 1537354.43, aum: 185007.07, qtd: 2, lat: -9.66, lng: -35.73},
-            {esc: "Distrital", cid: "S. Félix Araguaia", o26: 1465447.36, ses: 1627663.69, aum: 162216.33, qtd: 1, lat: -11.61, lng: -50.67},
-            {esc: "Distrital", cid: "Parintins", o26: 1469047.36, ses: 1626754.43, aum: 157707.07, qtd: 2, lat: -2.62, lng: -56.73},
-            {esc: "Distrital", cid: "Palmas", o26: 1327547.36, ses: 1558954.43, aum: 231407.07, qtd: 2, lat: -10.16, lng: -48.33},
-            {esc: "Distrital", cid: "João Pessoa", o26: 1339747.36, ses: 1563154.43, aum: 223407.07, qtd: 2, lat: -7.11, lng: -34.86},
-            {esc: "Distrital", cid: "Colíder", o26: 1258237.70, ses: 1325601.93, aum: 67364.23, qtd: 1, lat: -10.81, lng: -55.45}
-        ];
-
-        let orcSort = { key: 'aum', asc: false };
-        let maxAum = Math.max(...orcData.map(d => d.aum));
-        let minAum = Math.min(...orcData.map(d => d.aum));
-
-        function getOrcColor(val) {
-            const ratio = maxAum === minAum ? 0 : (val - minAum) / (maxAum - minAum);
-            let r, g, b;
-            if (ratio < 0.5) {
-                const lR = ratio * 2;
-                r = 76 + (33 - 76) * lR; g = 175 + (150 - 175) * lR; b = 80 + (243 - 80) * lR;
-            } else {
-                const lR = (ratio - 0.5) * 2;
-                r = 33 + (156 - 33) * lR; g = 150 + (39 - 150) * lR; b = 243 + (176 - 243) * lR;
-            }
-            return `rgb(${Math.floor(r)}, ${Math.floor(g)}, ${Math.floor(b)})`;
-        }
-
-        function initOrcApp() {
-            mapOrc = L.map('map-orc', { minZoom: 4, maxBounds: [[-35, -75], [5, -30]] }).setView([-14, -54], 4);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(mapOrc);
+            marker.on('mouseout', () => map.closePopup());
+            marker.bindTooltip(d.n, { permanent: true, direction: 'top', offset: [0, -8], className: 'label-fixo-cidade' });
             
-            orcData.forEach(d => {
-                const circle = L.circleMarker([d.lat, d.lng], { radius: 9, fillColor: getOrcColor(d.aum), color: "#fff", weight: 2, fillOpacity: 0.9 }).addTo(mapOrc);
-                circle.bindTooltip(d.cid, { permanent: true, direction: 'top', className: 'city-label', offset: [0, -5] });
-                circle.on('click', () => {
-                    document.querySelectorAll('#tbody-orc tr').forEach(r => r.classList.remove('highlight-row'));
-                    const tr = document.getElementById(`row-orc-${d.cid.replace(/\s+/g, '-')}`);
-                    if(tr) { tr.scrollIntoView({ behavior: 'smooth', block: 'center' }); tr.classList.add('highlight-row'); }
-                });
-            });
-
-            document.getElementById('searchOrc').addEventListener('input', function() {
-                const term = this.value.toLowerCase();
-                document.querySelectorAll('#tbody-orc tr').forEach(tr => {
-                    tr.style.display = tr.innerText.toLowerCase().includes(term) ? '' : 'none';
-                });
-            });
-
-            renderOrcTable();
-        }
-
-        function sortOrcTable(key) {
-            if (orcSort.key === key) orcSort.asc = !orcSort.asc;
-            else { orcSort.key = key; orcSort.asc = true; }
-            orcData.sort((a, b) => {
-                let vA = a[key], vB = b[key];
-                if (typeof vA === 'string') return orcSort.asc ? vA.localeCompare(vB) : vB.localeCompare(vA);
-                return orcSort.asc ? vA - vB : vB - vA;
-            });
-            renderOrcTable();
-        }
-
-        function renderOrcTable() {
-            const tbody = document.getElementById('tbody-orc');
-            if(!tbody) return;
-            tbody.innerHTML = '';
-            orcData.forEach(d => {
-                const color = getOrcColor(d.aum);
-                tbody.innerHTML += `
-                    <tr id="row-orc-${d.cid.replace(/\s+/g, '-')}" class="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer" onclick="mapOrc.setView([${d.lat}, ${d.lng}], 6)">
-                        <td class="px-4 py-3 text-slate-500">${d.esc}</td>
-                        <td class="px-4 py-3 font-bold text-slate-800">${d.cid}</td>
-                        <td class="px-2 py-3 text-center font-bold">${d.qtd}</td>
-                        <td class="px-3 py-3 text-right text-slate-600">${d.o26.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                        <td class="px-3 py-3 text-right font-bold text-slate-800">${d.ses.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                        <td class="px-3 py-3 text-right font-black" style="color: ${color}">${d.aum.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                    </tr>
-                `;
-            });
-        }
-
-
-        // ==========================================
-        // INICIALIZAÇÃO GERAL
-        // ==========================================
-        document.addEventListener('DOMContentLoaded', () => {
-            initMunicipioFilter();
-            renderTableInfra(unitsData);
-            initMapInfra();
-            setTimeout(initCharts, 300);
-            
-            // Listeners Infra
-            document.getElementById('municipioFilter').addEventListener('change', applyFiltersInfra);
-            document.getElementById('natureFilter').addEventListener('change', applyFiltersInfra);
-            document.getElementById('situacaoFilter').addEventListener('change', applyFiltersInfra);
-            document.getElementById('searchInputRh').addEventListener('input', renderRhTable);
-            
-            // Garante que a aba de Utilidades (React) renderize corretamente o mapa na carga inicial
-            setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
-            if(window.lucide) window.lucide.createIcons();
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${d.n}</td>
+                <td><span class="nota-badge" style="background:${getColor(d.c)}">${d.c.toFixed(1)}</span></td>
+                <td><span class="nota-badge" style="background:${getColor(d.a)}">${d.a.toFixed(1)}</span></td>`;
+            tr.onclick = () => { map.setView([d.lat, d.lng], 6); };
+            tbody.appendChild(tr);
         });
-    </script>
+    }
 
-    <!-- SCRIPT REACT (LÓGICA DA ABA 1: LOCAÇÕES E UTILIDADES) -->
-    <script type="text/babel">
-        const { useState, useMemo, useEffect, useRef } = React;
-        const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LabelList } = window.Recharts;
+    function initDetalhado() {
+        const tbody = document.querySelector('#tabela-detalhada tbody');
+        tbody.innerHTML = '';
+        detComp.forEach(d => {
+            const tr = document.createElement('tr');
+            let cols = d.c.map(v => `<td><span class="nota-badge" style="background:${getColor(v)}">${v}</span></td>`).join('');
+            tr.innerHTML = `<td style="font-weight:600">${d.n}</td><td>${d.u}</td><td>${d.f}</td>
+                ${cols}<td><span class="nota-badge" style="background:${getColor(d.med)}">${d.med.toFixed(1)}</span></td>
+                <td style="color:#64748b; font-style:italic">${d.obs}</td>`;
+            tbody.appendChild(tr);
+        });
+    }
 
-        const COLORS_STATUS = { "No Prazo": "#10b981", "Em Atraso": "#ef4444", "Pendente": "#f59e0b" };
+    let sortOrders = {}; 
+    function sortTable(columnIndex, tableId) {
+        const table = document.getElementById(tableId);
+        const tbody = table.querySelector('tbody');
+        const rows = Array.from(tbody.rows);
+        if (!sortOrders[tableId + columnIndex]) sortOrders[tableId + columnIndex] = 'asc';
+        else sortOrders[tableId + columnIndex] = sortOrders[tableId + columnIndex] === 'asc' ? 'desc' : 'asc';
+        const dir = sortOrders[tableId + columnIndex];
+        const sortedRows = rows.sort((a, b) => {
+            let cellA = a.cells[columnIndex].innerText.trim().replace(',', '.');
+            let cellB = b.cells[columnIndex].innerText.trim().replace(',', '.');
+            const valA = isNaN(cellA) ? cellA.toLowerCase() : parseFloat(cellA);
+            const valB = isNaN(cellB) ? cellB.toLowerCase() : parseFloat(cellB);
+            if (valA < valB) return dir === 'asc' ? -1 : 1;
+            if (valA > valB) return dir === 'asc' ? 1 : -1;
+            return 0;
+        });
+        tbody.append(...sortedRows);
+    }
+
+    function openTab(id, el) {
+        document.querySelectorAll('.content-page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-tabs li').forEach(l => l.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        el.classList.add('active');
+        if(id === 'page-mapa') setTimeout(() => { map.invalidateSize(); }, 200);
+    }
+
+    initResumo();
+    initDetalhado()
+// Adicionar após a função initDetalhado()
+
+// Função para destacar notas em verde
+function destacarNotasVerde() {
+    // Nomes específicos para destacar
+    const nomesEspecificos = [
+        "Ricardo Cavalcante Barbosa Junior",
+        "Herodoto Jean de Sales"
+    ];
+    
+    // Funções e unidades específicas para destacar
+    const funcoesUnidadesEspecificas = [
+        { unidade: "Campo Grande", funcao: "Assessor" },
+        { unidade: "Atalaia do Norte", funcao: "Chefe" }
+    ];
+    
+    // Destacar na tabela detalhada
+    const linhasDetalhadas = document.querySelectorAll('#tabela-detalhada tbody tr');
+    
+    linhasDetalhadas.forEach(linha => {
+        const nome = linha.cells[0].textContent.trim();
+        const unidade = linha.cells[1].textContent.trim();
+        const funcao = linha.cells[2].textContent.trim();
         
-        const cityMetadata = {
-            "Rio Branco (AC)": { uf: "AC", lat: -9.974, lng: -67.807 }, "Cruzeiro do Sul (AC)": { uf: "AC", lat: -7.631, lng: -72.670 },
-            "Atalaia do Norte": { uf: "AM", lat: -4.372, lng: -70.192 }, "Tabatinga": { uf: "AM", lat: -4.230, lng: -69.938 }, 
-            "Tefé": { uf: "AM", lat: -3.352, lng: -64.710 }, "Lábrea (AM)": { uf: "AM", lat: -7.259, lng: -64.798 }, 
-            "Parintins (AM)": { uf: "AM", lat: -2.628, lng: -56.735 }, "São Gabriel da Cachoeira (AM)": { uf: "AM", lat: -0.130, lng: -67.089 },
-            "Boa Vista (RR)": { uf: "RR", lat: 2.823, lng: -60.675 }, "Boa Vista": { uf: "RR", lat: 2.823, lng: -60.675 }, 
-            "Macapá": { uf: "AP", lat: 0.038, lng: -51.066 }, "Altamira (PA)": { uf: "PA", lat: -3.204, lng: -52.206 }, 
-            "Redenção": { uf: "PA", lat: -8.027, lng: -50.030 }, "Belém (PA)": { uf: "PA", lat: -1.455, lng: -48.502 }, 
-            "Itaituba (PA)": { uf: "PA", lat: -4.276, lng: -55.983 }, "Palmas": { uf: "TO", lat: -10.168, lng: -48.331 },
-            "Cacoal": { uf: "RO", lat: -11.433, lng: -61.442 }, "Porto Velho (RO)": { uf: "RO", lat: -8.761, lng: -63.903 },
-            "Colíder": { uf: "MT", lat: -10.805, lng: -55.451 }, "Canarana (MT)": { uf: "MT", lat: -13.553, lng: -52.261 }, 
-            "Barra do Garças": { uf: "MT", lat: -15.890, lng: -52.256 }, "Cuiabá": { uf: "MT", lat: -15.595, lng: -56.096 }, 
-            "São Félix do Araguaia (MT)": { uf: "MT", lat: -11.616, lng: -50.668 }, "Campo Grande": { uf: "MS", lat: -20.442, lng: -54.646 },
-            "João Pessoa (PB)": { uf: "PB", lat: -7.115, lng: -34.863 }, "Recife (PE)": { uf: "PE", lat: -8.047, lng: -34.877 }, 
-            "Maceió (AL)": { uf: "AL", lat: -9.665, lng: -35.735 }, "Salvador (BA)": { uf: "BA", lat: -12.971, lng: -38.510 }, 
-            "São Luiz (MA)": { uf: "MA", lat: -2.529, lng: -44.302 }, "Gov Valadares": { uf: "MG", lat: -18.851, lng: -41.946 }, 
-            "Curitiba (PR)": { uf: "PR", lat: -25.428, lng: -49.273 }, "Florianópolis (SC)": { uf: "SC", lat: -27.595, lng: -48.548 }
-        };
-
-        const rawData = [
-            { cidade: "Rio Branco (AC)", valor: 4858.00, mes: "Dezembro", emissao: "01/01/2026", vencimento: "19/01/2026", pagamento: "18/01/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Altamira (PA)", valor: 6000.00, mes: "Outubro", emissao: "10/10/2025", vencimento: "20/10/2025", pagamento: "18/10/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Altamira (PA)", valor: 6000.00, mes: "Novembro", emissao: "13/11/2025", vencimento: "10/12/2025", pagamento: "03/12/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Altamira (PA)", valor: 6000.00, mes: "Dezembro", emissao: "23/12/2025", vencimento: "12/01/2026", pagamento: "10/01/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Atalaia do Norte", valor: 5000.00, mes: "Abril", emissao: "30/05/2025", vencimento: "06/06/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Atalaia do Norte", valor: 5000.00, mes: "Maio", emissao: "30/05/2025", vencimento: "06/06/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Atalaia do Norte", valor: 5000.00, mes: "Junho", emissao: "30/06/2025", vencimento: "02/07/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Atalaia do Norte", valor: 5000.00, mes: "Julho", emissao: "30/07/2025", vencimento: "08/08/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Atalaia do Norte", valor: 5000.00, mes: "Agosto", emissao: "30/08/2025", vencimento: "02/09/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Atalaia do Norte", valor: 5000.00, mes: "Setembro", emissao: "30/09/2025", vencimento: "02/10/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Atalaia do Norte", valor: 5000.00, mes: "Outubro", emissao: "30/10/2025", vencimento: "02/11/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Atalaia do Norte", valor: 5000.00, mes: "Novembro", emissao: "30/11/2025", vencimento: "02/12/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Atalaia do Norte", valor: 5000.00, mes: "Dezembro", emissao: "30/12/2025", vencimento: "02/01/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Barra do Garças", valor: 2500.00, mes: "Junho", emissao: "18/06/2025", vencimento: "10/07/2025", pagamento: "10/07/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Barra do Garças", valor: 2500.00, mes: "Julho", emissao: "18/06/2025", vencimento: "10/07/2025", pagamento: "10/07/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Barra do Garças", valor: 2500.00, mes: "Agosto", emissao: "21/07/2025", vencimento: "10/08/2025", pagamento: "10/08/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Barra do Garças", valor: 2500.00, mes: "Setembro", emissao: "21/08/2025", vencimento: "10/09/2025", pagamento: "10/09/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Barra do Garças", valor: 2500.00, mes: "Outubro", emissao: "18/09/2025", vencimento: "10/10/2025", pagamento: "10/10/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Barra do Garças", valor: 2500.00, mes: "Novembro", emissao: "18/10/2025", vencimento: "10/11/2025", pagamento: "10/11/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Barra do Garças", valor: 2500.00, mes: "Dezembro", emissao: "04/12/2025", vencimento: "10/12/2025", pagamento: "10/12/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Boa Vista (RR)", valor: 23800.00, mes: "Dezembro", emissao: "02/12/2025", vencimento: "15/12/2025", pagamento: "15/12/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Campo Grande", valor: 8000.00, mes: "Maio", emissao: "02/06/2025", vencimento: "17/06/2025", pagamento: "17/06/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Campo Grande", valor: 8000.00, mes: "Junho", emissao: "01/07/2025", vencimento: "15/07/2025", pagamento: "15/07/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Campo Grande", valor: 8000.00, mes: "Julho", emissao: "01/08/2025", vencimento: "15/08/2025", pagamento: "15/08/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Campo Grande", valor: 8000.00, mes: "Agosto", emissao: "01/09/2025", vencimento: "15/09/2025", pagamento: "15/09/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Campo Grande", valor: 8000.00, mes: "Setembro", emissao: "01/10/2025", vencimento: "15/10/2025", pagamento: "15/10/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Campo Grande", valor: 8000.00, mes: "Novembro", emissao: "03/11/2025", vencimento: "15/11/2025", pagamento: "15/11/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Campo Grande", valor: 8000.00, mes: "Dezembro", emissao: "01/12/2025", vencimento: "15/12/2025", pagamento: "15/12/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Canarana (MT)", valor: 5000.00, mes: "Outubro", emissao: "05/11/2025", vencimento: "18/11/2025", pagamento: "18/11/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Canarana (MT)", valor: 5000.00, mes: "Novembro", emissao: "01/12/2025", vencimento: "18/12/2025", pagamento: "16/12/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Colíder", valor: 3900.00, mes: "Junho", emissao: "06/06/2025", vencimento: "23/06/2025", pagamento: "20/06/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Colíder", valor: 3900.00, mes: "Julho", emissao: "26/06/2025", vencimento: "22/07/2025", pagamento: "22/07/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Colíder", valor: 3900.00, mes: "Agosto", emissao: "26/06/2025", vencimento: "22/08/2025", pagamento: "22/08/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Colíder", valor: 3900.00, mes: "Setembro", emissao: "26/06/2025", vencimento: "22/09/2025", pagamento: "19/09/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Colíder", valor: 3900.00, mes: "Outubro", emissao: "26/06/2025", vencimento: "22/10/2025", pagamento: "20/10/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Colíder", valor: 3900.00, mes: "Novembro", emissao: "26/06/2025", vencimento: "24/11/2025", pagamento: "24/11/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Colíder", valor: 3900.00, mes: "Dezembro", emissao: "26/06/2025", vencimento: "22/12/2025", pagamento: "19/12/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Cruzeiro do Sul (AC)", valor: 3700.00, mes: "Novembro", emissao: "17/11/2025", vencimento: "25/11/2025", pagamento: "24/11/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Cruzeiro do Sul (AC)", valor: 3700.00, mes: "Dezembro", emissao: "04/12/2025", vencimento: "10/12/2025", pagamento: "10/12/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Cuiabá", valor: 5800.00, mes: "Junho", emissao: "18/06/2025", vencimento: "28/06/2025", pagamento: "28/06/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Cuiabá", valor: 5800.00, mes: "Julho", emissao: "10/07/2025", vencimento: "20/07/2025", pagamento: "20/07/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Cuiabá", valor: 5800.00, mes: "Agosto", emissao: "13/08/2025", vencimento: "23/08/2025", pagamento: "23/08/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Cuiabá", valor: 5800.00, mes: "Setembro", emissao: "10/09/2025", vencimento: "20/09/2025", pagamento: "20/09/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Cuiabá", valor: 5800.00, mes: "Outubro", emissao: "15/10/2025", vencimento: "26/10/2025", pagamento: "26/10/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Cuiabá", valor: 5800.00, mes: "Novembro", emissao: "10/11/2025", vencimento: "21/11/2025", pagamento: "21/11/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Cuiabá", valor: 5800.00, mes: "Dezembro", emissao: "11/12/2025", vencimento: "30/01/2026", pagamento: "16/01/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Curitiba (PR)", valor: 9600.00, mes: "Novembro", emissao: "01/12/2025", vencimento: "15/12/2025", pagamento: "15/12/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Curitiba (PR)", valor: 9600.00, mes: "Dezembro", emissao: "01/12/2025", vencimento: "19/01/2026", pagamento: "19/01/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Florianópolis (SC)", valor: 12100.00, mes: "Outubro", emissao: "31/10/2025", vencimento: "10/11/2025", pagamento: "10/11/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Florianópolis (SC)", valor: 12100.00, mes: "Novembro", emissao: "02/12/2025", vencimento: "19/12/2025", pagamento: "17/12/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Gov Valadares", valor: 8000.00, mes: "Outubro", emissao: "24/09/2025", vencimento: "22/10/2025", pagamento: "22/10/2025", tipo: "Locação de Imóveis" },
-            { cidade: "João Pessoa (PB)", valor: 6000.00, mes: "Novembro", emissao: "04/11/2025", vencimento: "15/11/2025", pagamento: "15/11/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Maceió (AL)", valor: 6000.00, mes: "Outubro", emissao: "28/10/2025", vencimento: "15/11/2025", pagamento: "15/11/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Palmas", valor: 7600.00, mes: "Outubro", emissao: "22/10/2025", vencimento: "28/10/2025", pagamento: "28/10/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Palmas", valor: 7600.00, mes: "Novembro", emissao: "22/10/2025", vencimento: "28/11/2025", pagamento: "28/11/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Palmas", valor: 7600.00, mes: "Dezembro", emissao: "22/10/2025", vencimento: "28/12/2025", pagamento: "23/12/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Recife (PE)", valor: 17000.00, mes: "Janeiro", emissao: "06/01/2026", vencimento: "16/01/2026", pagamento: "16/01/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Redenção", valor: 6000.00, mes: "Outubro", emissao: "16/06/2025", vencimento: "10/11/2025", pagamento: "08/11/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Salvador (BA)", valor: 11000.00, mes: "Novembro", emissao: "02/12/2025", vencimento: "10/12/2025", pagamento: "10/12/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Tabatinga", valor: 7500.00, mes: "Dezembro", emissao: "01/12/2025", vencimento: "26/12/2025", pagamento: "19/12/2025", tipo: "Locação de Imóveis" },
-            { cidade: "Cacoal", valor: 4554.00, mes: "Janeiro", emissao: "05/01/2026", vencimento: "15/01/2026", pagamento: "15/01/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Macapá", valor: 11300.00, mes: "Janeiro", emissao: "09/01/2026", vencimento: "19/01/2026", pagamento: "19/01/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Rio Branco (AC)", valor: 4858.00, mes: "Janeiro", emissao: "01/01/2026", vencimento: "19/01/2026", pagamento: "18/01/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Rio Branco (AC)", valor: 4858.00, mes: "Fevereiro", emissao: "01/02/2026", vencimento: "19/02/2026", pagamento: "18/02/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Rio Branco (AC)", valor: 4858.00, mes: "Março", emissao: "01/03/2026", vencimento: "19/03/2026", pagamento: "18/03/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Rio Branco (AC)", valor: 4858.00, mes: "Abril", emissao: "01/04/2026", vencimento: "19/04/2026", pagamento: "18/04/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Altamira (PA)", valor: 6000.00, mes: "Janeiro", emissao: "10/01/2026", vencimento: "20/01/2026", pagamento: "18/01/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Altamira (PA)", valor: 6000.00, mes: "Fevereiro", emissao: "10/02/2026", vencimento: "20/02/2026", pagamento: "18/02/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Altamira (PA)", valor: 6000.00, mes: "Março", emissao: "10/03/2026", vencimento: "20/03/2026", pagamento: "18/03/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Altamira (PA)", valor: 6000.00, mes: "Abril", emissao: "10/04/2026", vencimento: "20/04/2026", pagamento: "18/04/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Atalaia do Norte", valor: 5000.00, mes: "Janeiro", emissao: "02/01/2026", vencimento: "06/01/2026", pagamento: "06/01/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Atalaia do Norte", valor: 5000.00, mes: "Fevereiro", emissao: "02/02/2026", vencimento: "06/02/2026", pagamento: "06/02/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Atalaia do Norte", valor: 5000.00, mes: "Março", emissao: "02/03/2026", vencimento: "06/03/2026", pagamento: "06/03/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Atalaia do Norte", valor: 5000.00, mes: "Abril", emissao: "02/04/2026", vencimento: "06/04/2026", pagamento: "06/04/2026", tipo: "Locação de Imóveis" },
-
-            { cidade: "Barra do Garças", valor: 2500.00, mes: "Janeiro", emissao: "04/01/2026", vencimento: "10/01/2026", pagamento: "10/01/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Barra do Garças", valor: 2500.00, mes: "Fevereiro", emissao: "04/02/2026", vencimento: "10/02/2026", pagamento: "10/02/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Barra do Garças", valor: 2500.00, mes: "Março", emissao: "04/03/2026", vencimento: "10/03/2026", pagamento: "10/03/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Barra do Garças", valor: 2500.00, mes: "Abril", emissao: "04/04/2026", vencimento: "10/04/2026", pagamento: "10/04/2026", tipo: "Locação de Imóveis" },
-
-            { cidade: "Boa Vista (RR)", valor: 23800.00, mes: "Janeiro", emissao: "02/01/2026", vencimento: "15/01/2026", pagamento: "15/01/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Boa Vista (RR)", valor: 23800.00, mes: "Fevereiro", emissao: "02/02/2026", vencimento: "15/02/2026", pagamento: "15/02/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Boa Vista (RR)", valor: 23800.00, mes: "Março", emissao: "02/03/2026", vencimento: "15/03/2026", pagamento: "15/03/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Boa Vista (RR)", valor: 23800.00, mes: "Abril", emissao: "02/04/2026", vencimento: "15/04/2026", pagamento: "15/04/2026", tipo: "Locação de Imóveis" },
-
-            { cidade: "Campo Grande", valor: 8000.00, mes: "Janeiro", emissao: "02/01/2026", vencimento: "15/01/2026", pagamento: "15/01/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Campo Grande", valor: 8000.00, mes: "Fevereiro", emissao: "02/02/2026", vencimento: "15/02/2026", pagamento: "15/02/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Campo Grande", valor: 8000.00, mes: "Março", emissao: "02/03/2026", vencimento: "15/03/2026", pagamento: "15/03/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Campo Grande", valor: 8000.00, mes: "Abril", emissao: "02/04/2026", vencimento: "15/04/2026", pagamento: "15/04/2026", tipo: "Locação de Imóveis" },
-
-            { cidade: "Canarana (MT)", valor: 5000.00, mes: "Janeiro", emissao: "05/01/2026", vencimento: "18/01/2026", pagamento: "18/01/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Canarana (MT)", valor: 5000.00, mes: "Fevereiro", emissao: "05/02/2026", vencimento: "18/02/2026", pagamento: "18/02/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Canarana (MT)", valor: 5000.00, mes: "Março", emissao: "05/03/2026", vencimento: "18/03/2026", pagamento: "18/03/2026", tipo: "Locação de Imóveis" },
-            { cidade: "Canarana (MT)", valor: 5000.00, mes: "Abril", emissao: "05/04/2026", vencimento: "18/04/2026", pagamento: "18/04/2026", tipo: "Locação de Imóveis" },
-
-            // Energia
-            { cidade: "Atalaia do Norte", valor: 445.37, mes: "Junho", emissao: "09/06/2025", vencimento: "08/07/2025", pagamento: "09/07/2025", tipo: "Energia Elétrica" },
-            { cidade: "Atalaia do Norte", valor: 472.63, mes: "Julho", emissao: "11/07/2025", vencimento: "07/08/2025", pagamento: "07/08/2025", tipo: "Energia Elétrica" },
-            { cidade: "Atalaia do Norte", valor: 402.98, mes: "Agosto", emissao: "08/08/2025", vencimento: "04/09/2025", pagamento: "04/09/2025", tipo: "Energia Elétrica" },
-            { cidade: "Atalaia do Norte", valor: 507.02, mes: "Setembro", emissao: "04/09/2025", vencimento: "06/10/2025", pagamento: "06/10/2025", tipo: "Energia Elétrica" },
-            { cidade: "Atalaia do Norte", valor: 612.30, mes: "Outubro", emissao: "09/10/2025", vencimento: "06/11/2025", pagamento: "06/11/2025", tipo: "Energia Elétrica" },
-            { cidade: "Atalaia do Norte", valor: 726.11, mes: "Novembro", emissao: "07/11/2025", vencimento: "04/12/2025", pagamento: "04/12/2025", tipo: "Energia Elétrica" },
-            { cidade: "Atalaia do Norte", valor: 936.58, mes: "Dezembro", emissao: "09/12/2025", vencimento: "05/01/2026", tipo: "Energia Elétrica" },
-            { cidade: "Barra do Garças", valor: 19.66, mes: "Julho", emissao: "22/07/2025", vencimento: "11/08/2025", pagamento: "11/08/2025", tipo: "Energia Elétrica" },
-            { cidade: "Barra do Garças", valor: 58.24, mes: "Agosto", emissao: "22/08/2025", vencimento: "11/09/2025", pagamento: "11/09/2025", tipo: "Energia Elétrica" },
-            { cidade: "Barra do Garças", valor: 266.36, mes: "Setembro", emissao: "22/09/2025", vencimento: "11/10/2025", pagamento: "09/10/2025", tipo: "Energia Elétrica" },
-            { cidade: "Barra do Garças", valor: 834.71, mes: "Outubro", emissao: "22/10/2025", vencimento: "11/11/2025", pagamento: "11/11/2025", tipo: "Energia Elétrica" },
-            { cidade: "Barra do Garças", valor: 660.31, mes: "Novembro", emissao: "24/11/2025", vencimento: "11/12/2025", pagamento: "11/12/2025", tipo: "Energia Elétrica" },
-            { cidade: "Canarana (MT)", valor: 125.08, mes: "Janeiro", emissao: "30/12/2025", vencimento: "21/01/2026", pagamento: "21/01/2026", tipo: "Energia Elétrica" },
-            { cidade: "Colíder", valor: 117.42, mes: "Julho", emissao: "08/07/2025", vencimento: "22/08/2025", pagamento: "22/08/2025", tipo: "Energia Elétrica" },
-            { cidade: "Colíder", valor: 150.14, mes: "Agosto", emissao: "08/08/2025", vencimento: "15/08/2025", pagamento: "15/08/2025", tipo: "Energia Elétrica" },
-            { cidade: "Colíder", valor: 199.32, mes: "Setembro", emissao: "08/09/2025", vencimento: "15/09/2025", pagamento: "12/09/2025", tipo: "Energia Elétrica" },
-            { cidade: "Colíder", valor: 192.60, mes: "Outubro", emissao: "10/10/2025", vencimento: "15/10/2025", pagamento: "14/10/2025", tipo: "Energia Elétrica" },
-            { cidade: "Colíder", valor: 363.40, mes: "Novembro", emissao: "07/11/2025", vencimento: "14/11/2025", pagamento: "14/11/2025", tipo: "Energia Elétrica" },
-            { cidade: "Colíder", valor: 537.72, mes: "Dezembro", emissao: "08/12/2025", vencimento: "15/12/2025", pagamento: "15/12/2025", tipo: "Energia Elétrica" },
-            { cidade: "Cruzeiro do Sul (AC)", valor: 337.69, mes: "Novembro", emissao: "10/11/2025", vencimento: "01/12/2025", pagamento: "01/12/2025", tipo: "Energia Elétrica" },
-            { cidade: "Cruzeiro do Sul (AC)", valor: 414.09, mes: "Dezembro", emissao: "11/12/2025", vencimento: "01/01/2026", pagamento: "28/12/2025", tipo: "Energia Elétrica" },
-            { cidade: "Lábrea (AM)", valor: 84.30, mes: "Janeiro", emissao: "07/01/2026", vencimento: "05/02/2026", pagamento: "01/02/2026", tipo: "Energia Elétrica" },
-            { cidade: "Parintins (AM)", valor: 116.84, mes: "Outubro", emissao: "23/10/2025", vencimento: "15/11/2025", tipo: "Energia Elétrica" },
-            { cidade: "Parintins (AM)", valor: 169.02, mes: "Novembro", emissao: "21/11/2025", vencimento: "15/12/2025", tipo: "Energia Elétrica" },
-            { cidade: "Parintins (AM)", valor: 129.87, mes: "Dezembro", emissao: "26/12/2025", vencimento: "15/01/2026", tipo: "Energia Elétrica" },
-            { cidade: "Redenção", valor: 85.28, mes: "Agosto", emissao: "05/08/2025", vencimento: "12/08/2025", pagamento: "10/08/2025", tipo: "Energia Elétrica" },
-            { cidade: "Redenção", valor: 93.10, mes: "Setembro", emissao: "02/09/2025", vencimento: "09/09/2025", pagamento: "08/09/2025", tipo: "Energia Elétrica" },
-            { cidade: "Redenção", valor: 99.33, mes: "Outubro", emissao: "18/11/2025", vencimento: "10/10/2025", pagamento: "08/10/2025", tipo: "Energia Elétrica" },
-            { cidade: "Redenção", valor: 221.29, mes: "Novembro", emissao: "18/11/2025", vencimento: "12/11/2025", pagamento: "10/11/2025", tipo: "Energia Elétrica" },
-            { cidade: "São Gabriel da Cachoeira (AM)", valor: 96.92, mes: "Novembro", emissao: "14/11/2025", vencimento: "05/01/2026", pagamento: "04/01/2026", tipo: "Energia Elétrica" },
-            { cidade: "São Gabriel da Cachoeira (AM)", valor: 42.15, mes: "Dezembro", emissao: "17/12/2025", vencimento: "05/02/2026", pagamento: "04/02/2026", tipo: "Energia Elétrica" },
-            { cidade: "Tabatinga", valor: 94.40, mes: "Abril", emissao: "29/05/2025", vencimento: "29/05/2025", pagamento: "29/05/2025", tipo: "Energia Elétrica" },
-            { cidade: "Tabatinga", valor: 278.37, mes: "Maio", emissao: "29/05/2025", vencimento: "29/05/2025", pagamento: "29/05/2025", tipo: "Energia Elétrica" },
-            { cidade: "Tabatinga", valor: 399.70, mes: "Junho", emissao: "09/06/2025", vencimento: "05/08/2025", pagamento: "04/08/2025", tipo: "Energia Elétrica" },
-            { cidade: "Tabatinga", valor: 439.82, mes: "Julho", emissao: "14/07/2025", vencimento: "05/09/2025", pagamento: "05/09/2025", tipo: "Energia Elétrica" },
-            { cidade: "Tabatinga", valor: 365.03, mes: "Agosto", emissao: "11/08/2025", vencimento: "05/10/2025", pagamento: "10/09/2025", tipo: "Energia Elétrica" },
-            { cidade: "Tabatinga", valor: 421.51, mes: "Setembro", emissao: "11/09/2025", vencimento: "05/11/2025", pagamento: "05/11/2025", tipo: "Energia Elétrica" },
-            { cidade: "Tabatinga", valor: 425.72, mes: "Outubro", emissao: "27/10/2025", vencimento: "05/12/2025", pagamento: "25/11/2025", tipo: "Energia Elétrica" },
-            { cidade: "Tabatinga", valor: 533.42, mes: "Novembro", emissao: "11/11/2025", vencimento: "05/01/2026", pagamento: "05/12/2025", tipo: "Energia Elétrica" },
-
-            // Água
-            { cidade: "Atalaia do Norte", valor: 150.72, mes: "Julho", emissao: "10/07/2025", vencimento: "28/08/2025", pagamento: "28/08/2025", tipo: "Água e Esgoto" },
-            { cidade: "Atalaia do Norte", valor: 150.72, mes: "Agosto", emissao: "12/08/2025", vencimento: "28/09/2025", pagamento: "28/09/2025", tipo: "Água e Esgoto" },
-            { cidade: "Atalaia do Norte", valor: 150.72, mes: "Setembro", emissao: "03/09/2025", vencimento: "28/10/2025", pagamento: "28/10/2025", tipo: "Água e Esgoto" },
-            { cidade: "Atalaia do Norte", valor: 150.72, mes: "Outubro", emissao: "08/10/2025", vencimento: "28/11/2025", pagamento: "28/11/2025", tipo: "Água e Esgoto" },
-            { cidade: "Atalaia do Norte", valor: 150.72, mes: "Novembro", emissao: "10/11/2025", vencimento: "28/12/2025", tipo: "Água e Esgoto" },
-            { cidade: "Barra do Garças", valor: 168.80, mes: "Agosto", emissao: "06/08/2025", vencimento: "21/08/2025", pagamento: "15/08/2025", tipo: "Água e Esgoto" },
-            { cidade: "Barra do Garças", valor: 168.85, mes: "Setembro", emissao: "02/09/2025", vencimento: "22/09/2025", pagamento: "22/09/2025", tipo: "Água e Esgoto" },
-            { cidade: "Barra do Garças", valor: 168.80, mes: "Outubro", emissao: "03/10/2025", vencimento: "22/10/2025", pagamento: "22/10/2025", tipo: "Água e Esgoto" },
-            { cidade: "Barra do Garças", valor: 168.80, mes: "Novembro", emissao: "07/11/2025", vencimento: "24/11/2025", pagamento: "24/11/2025", tipo: "Água e Esgoto" },
-            { cidade: "Barra do Garças", valor: 168.80, mes: "Dezembro", emissao: "04/12/2025", vencimento: "22/12/2025", pagamento: "20/12/2025", tipo: "Água e Esgoto" },
-            { cidade: "Canarana (MT)", valor: 65.90, mes: "Janeiro", emissao: "05/01/2026", vencimento: "13/01/2026", pagamento: "13/01/2026", tipo: "Água e Esgoto" },
-            { cidade: "Tabatinga", valor: 141.38, mes: "Março", emissao: "25/04/2025", vencimento: "28/04/2025", pagamento: "25/04/2025", tipo: "Água e Esgoto" },
-            { cidade: "Tabatinga", valor: 194.85, mes: "Abril", emissao: "25/04/2025", vencimento: "28/05/2025", pagamento: "28/05/2025", tipo: "Água e Esgoto" },
-            { cidade: "Tabatinga", valor: 194.85, mes: "Maio", emissao: "23/05/2025", vencimento: "28/06/2025", pagamento: "28/06/2025", tipo: "Água e Esgoto" },
-            { cidade: "Tabatinga", valor: 194.85, mes: "Junho", emissao: "18/07/2025", vencimento: "28/07/2025", pagamento: "25/07/2025", tipo: "Água e Esgoto" },
-            { cidade: "Tabatinga", valor: 194.85, mes: "Julho", emissao: "19/08/2025", vencimento: "28/08/2025", pagamento: "25/08/2025", tipo: "Água e Esgoto" },
-            { cidade: "Tabatinga", valor: 194.85, mes: "Agosto", emissao: "19/09/2025", vencimento: "28/09/2025", pagamento: "26/09/2025", tipo: "Água e Esgoto" },
-            { cidade: "Tabatinga", valor: 194.85, mes: "Setembro", emissao: "17/10/2025", vencimento: "28/10/2025", pagamento: "28/10/2025", tipo: "Água e Esgoto" }
-        ];
-
-        // --- Funções Auxiliares React ---
-        const parseDate = (d) => {
-            if (!d) return null;
-            const p = d.split('/');
-            return p.length === 3 ? new Date(p[2], p[1]-1, p[0]) : null;
-        };
-
-        const formatDate = (date) => (date && date instanceof Date && !isNaN(date)) ? date.toLocaleDateString('pt-BR') : "—";
-        const formatCurrency = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
-
-        // --- Componentes React ---
-        const LucideIcon = ({ name, className }) => {
-            const iconRef = useRef(null);
-            useEffect(() => { 
-                if (window.lucide && window.lucide.icons[name] && iconRef.current) {
-                    iconRef.current.innerHTML = window.lucide.icons[name].toSvg({ class: className });
-                }
-            }, [name, className]);
-            return <span ref={iconRef} className="inline-flex items-center justify-center"></span>;
-        };
-
-        const SortableHeader = ({ label, field, currentSort, onSort, center = false }) => (
-            <th className={`px-6 py-5 cursor-pointer hover:text-blue-600 transition-colors ${center ? 'text-center' : ''}`} onClick={() => onSort(field)}>
-                <div className={`flex items-center gap-2 ${center ? 'justify-center' : ''}`}>
-                    {label}
-                    <LucideIcon name="arrow-up-down" className={`w-3 h-3 ${currentSort.key === field ? 'text-blue-600' : 'text-slate-300'}`} />
-                </div>
-            </th>
+        // Verificar se é um dos nomes específicos
+        const nomeEspecifico = nomesEspecificos.includes(nome);
+        
+        // Verificar se é assessor de Campo Grande ou chefe de Atalaia do Norte
+        const funcaoEspecifica = funcoesUnidadesEspecificas.some(item => 
+            unidade === item.unidade && funcao === item.funcao
         );
-
-        const CardKpi = ({ title, value, iconName, color }) => {
-            const colors = {
-                blue: 'bg-blue-50 border-blue-100 text-blue-600',
-                emerald: 'bg-emerald-50 border-emerald-100 text-emerald-600',
-                amber: 'bg-amber-50 border-amber-100 text-amber-600',
-                purple: 'bg-purple-50 border-purple-100 text-purple-600',
-            };
-            return (
-                <div className="p-5 rounded-3xl border bg-white shadow-sm hover:translate-y-[-2px] transition-all">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">{title}</p>
-                            <h4 className="text-xl font-black text-slate-900 tracking-tighter">{value}</h4>
-                        </div>
-                        <div className={`p-2.5 rounded-2xl ${colors[color].split(' text')[0]} shadow-inner`}>
-                            <LucideIcon name={iconName} className={`w-5 h-5 ${colors[color].split('border')[0].replace('bg', 'text')}`} />
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        // Componente Mapa com Resize Automático
-        const LeafletMap = ({ data }) => {
-            const mapRef = useRef(null);
-            const mapInstance = useRef(null);
-
-            useEffect(() => {
-                if (!window.L) return;
-
-                if (!mapInstance.current && mapRef.current) {
-                    if (mapRef.current._leaflet_id) {
-                        mapRef.current._leaflet_id = null;
+        
+        if (nomeEspecifico || funcaoEspecifica) {
+            // Destacar todas as células de nota (da coluna 3 à 10 - 7 competências + média)
+            for (let i = 3; i <= 10; i++) {
+                if (linha.cells[i]) {
+                    const badge = linha.cells[i].querySelector('.nota-badge');
+                    if (badge) {
+                        badge.style.background = '#16a34a'; // Verde
+                        badge.style.color = 'white';
                     }
-
-                    mapInstance.current = window.L.map(mapRef.current, {
-                        minZoom: 4,
-                        maxBounds: [[-35, -75], [5, -30]],
-                        maxBoundsViscosity: 1.0
-                    }).setView([-12.0, -55.0], 4);
-                    
-                    window.L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                        attribution: '&copy; OpenStreetMap', subdomains: 'abcd', maxZoom: 19
-                    }).addTo(mapInstance.current);
                 }
+            }
+        }
+    });
+    
+    // Destacar na tabela resumo (visão geral)
+    const linhasResumo = document.querySelectorAll('#tabela-resumo tbody tr');
+    
+    linhasResumo.forEach(linha => {
+        const unidade = linha.cells[0].textContent.trim();
+        
+        // Verificar se é Campo Grande (assessor) ou Atalaia do Norte (chefe)
+        if (unidade === "Campo Grande") {
+            // Destacar nota do assessor (coluna 2)
+            const badgeAssessor = linha.cells[2].querySelector('.nota-badge');
+            if (badgeAssessor) {
+                badgeAssessor.style.background = '#16a34a'; // Verde
+                badgeAssessor.style.color = 'white';
+            }
+        }
+        
+        if (unidade === "Atalaia Norte") {
+            // Destacar nota do chefe (coluna 1)
+            const badgeChefe = linha.cells[1].querySelector('.nota-badge');
+            if (badgeChefe) {
+                badgeChefe.style.background = '#16a34a'; // Verde
+                badgeChefe.style.color = 'white';
+            }
+        }
+    });
+}
 
-                if (mapInstance.current) {
-                    mapInstance.current.eachLayer((layer) => {
-                        if (layer instanceof window.L.Marker) mapInstance.current.removeLayer(layer);
-                    });
-
-                    data.forEach(city => {
-                        if (!city.lat || !city.lng) return;
-
-                        const getColor = (status) => {
-                            if (status === 'Em Atraso') return 'bg-red-500';
-                            if (status === 'Pendente') return 'bg-amber-500';
-                            if (status === 'No Prazo') return 'bg-emerald-500';
-                            return 'bg-slate-200';
-                        };
-
-                        const zIndexVal = Math.floor((90 - city.lat) * 100);
-
-                        let indicatorsHtml = '';
-                        if (city.status['Locação de Imóveis'] !== 'Sem Dados') indicatorsHtml += `<div class="w-2.5 h-2.5 rounded-full ${getColor(city.status['Locação de Imóveis'])}"></div>`;
-                        if (city.status['Energia Elétrica'] !== 'Sem Dados') indicatorsHtml += `<div class="w-2.5 h-2.5 rounded-full ${getColor(city.status['Energia Elétrica'])}"></div>`;
-                        if (city.status['Água e Esgoto'] !== 'Sem Dados') indicatorsHtml += `<div class="w-2.5 h-2.5 rounded-full ${getColor(city.status['Água e Esgoto'])}"></div>`;
-
-                        const html = `
-                            <div style="position: relative; display: flex; justify-content: center; z-index: ${zIndexVal}; pointer-events: none;">
-                                <div style="position: absolute; bottom: 22px; white-space: nowrap; font-size: 10px; font-weight: 700; color: #334155; background: rgba(255, 255, 255, 0.85); padding: 1px 6px; border-radius: 6px; border: 1px solid rgba(203, 213, 225, 0.6); box-shadow: 0 2px 4px rgba(0,0,0,0.05); backdrop-filter: blur(2px);">
-                                    ${city.name}
-                                </div>
-                                <div style="pointer-events: auto; z-index: ${zIndexVal + 10};" class="flex gap-[2px] bg-white p-1 rounded-full shadow-md border border-slate-200 hover:scale-110 transition-transform cursor-pointer">
-                                    ${indicatorsHtml}
-                                </div>
-                            </div>
-                        `;
-
-                        let tooltipDetails = '';
-                        if (city.status['Locação de Imóveis'] !== 'Sem Dados') tooltipDetails += `<div class="flex items-center gap-2 mt-1"><span class="w-2 h-2 rounded-full inline-block ${getColor(city.status['Locação de Imóveis'])}"></span> Locação: ${city.status['Locação de Imóveis']}</div>`;
-                        if (city.status['Energia Elétrica'] !== 'Sem Dados') tooltipDetails += `<div class="flex items-center gap-2 mt-1"><span class="w-2 h-2 rounded-full inline-block ${getColor(city.status['Energia Elétrica'])}"></span> Energia: ${city.status['Energia Elétrica']}</div>`;
-                        if (city.status['Água e Esgoto'] !== 'Sem Dados') tooltipDetails += `<div class="flex items-center gap-2 mt-1"><span class="w-2 h-2 rounded-full inline-block ${getColor(city.status['Água e Esgoto'])}"></span> Água: ${city.status['Água e Esgoto']}</div>`;
-
-                        const tooltipHtml = `
-                            <div class="text-[10px] font-bold">
-                                <p class="mb-1.5 uppercase tracking-wider text-slate-800 border-b border-slate-200 pb-1.5">${city.name}</p>
-                                ${tooltipDetails}
-                            </div>
-                        `;
-
-                        const icon = window.L.divIcon({ html: html, className: 'custom-map-marker', iconSize: [44, 20], iconAnchor: [22, 10] });
-
-                        window.L.marker([city.lat, city.lng], { icon, zIndexOffset: zIndexVal })
-                            .bindTooltip(tooltipHtml, { direction: 'top', className: 'custom-leaflet-tooltip', offset: [0, -10] })
-                            .addTo(mapInstance.current);
-                    });
-                }
-            }, [data]);
-
-            useEffect(() => {
-                const handleResize = () => { if (mapInstance.current) mapInstance.current.invalidateSize(); };
-                window.addEventListener('resize', handleResize);
-                return () => window.removeEventListener('resize', handleResize);
-            }, []);
-
-            return (
-                <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200 flex flex-col mb-8 w-full relative">
-                    <h3 className="text-[10px] font-black text-slate-400 mb-4 flex items-center gap-2 uppercase tracking-widest justify-center">
-                        <LucideIcon name="map" className="text-blue-500 w-4 h-4" /> Distribuição Geográfica (Quadrado)
-                    </h3>
-                    
-                    <div className="w-full max-w-[800px] aspect-square mx-auto relative border border-slate-100 rounded-3xl shadow-inner overflow-hidden bg-slate-50">
-                        <div ref={mapRef} className="w-full h-full z-0"></div>
-                        
-                        <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md p-3 rounded-xl border border-slate-200 shadow-sm z-[1000] text-[9px] font-bold uppercase text-slate-500 flex flex-col gap-1.5">
-                            <p className="border-b border-slate-200 pb-1 mb-1 text-[8px]">Legenda</p>
-                            <p className="text-[8px] font-medium text-slate-400 mb-1 normal-case leading-tight max-w-[120px]">Cada ponto representa um serviço existente na unidade.</p>
-                            <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> No Prazo</div>
-                            <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-amber-500"></span> Pendente</div>
-                            <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-red-500"></span> Em Atraso</div>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        const AppUtilidades = () => {
-            const [activeTab, setActiveTab] = useState('Locação de Imóveis');
-            const [filterCity, setFilterCity] = useState('Todas');
-            const [statusFilter, setStatusFilter] = useState('Todos');
-            const [searchTerm, setSearchTerm] = useState('');
-            const [expandedCities, setExpandedCities] = useState(new Set());
-            const [sortConfig, setSortConfig] = useState({ key: 'cidade', direction: 'asc' });
-
-            const today = new Date(2026, 1, 11);
-
-            const mapData = useMemo(() => {
-                const result = {};
-                Object.keys(cityMetadata).forEach(c => {
-                    if (cityMetadata[c].lat) {
-                        let name = c === 'Boa Vista' ? 'Boa Vista (RR)' : c;
-                        if (!result[name]) {
-                            result[name] = {
-                                name: name, lat: cityMetadata[c].lat, lng: cityMetadata[c].lng,
-                                status: { 'Locação de Imóveis': 'Sem Dados', 'Energia Elétrica': 'Sem Dados', 'Água e Esgoto': 'Sem Dados' },
-                                items: { 'Locação de Imóveis': [], 'Energia Elétrica': [], 'Água e Esgoto': [] }
-                            };
-                        }
-                    }
-                });
-
-                rawData.forEach(item => {
-                    let cityName = item.cidade === 'Boa Vista' ? 'Boa Vista (RR)' : item.cidade;
-                    if (result[cityName] && result[cityName].items[item.tipo]) result[cityName].items[item.tipo].push(item);
-                });
-
-                Object.values(result).forEach(city => {
-                    ['Locação de Imóveis', 'Energia Elétrica', 'Água e Esgoto'].forEach(tipo => {
-                        const items = city.items[tipo];
-                        if (items.length === 0) return;
-                        
-                        let hasLate = false, hasPending = false;
-                        items.forEach(d => {
-                            if (d.valor <= 0) return;
-                            if (!d.pagamento) hasPending = true;
-                            else {
-                                const v = parseDate(d.vencimento), p = parseDate(d.pagamento);
-                                if (v && p && p > v) hasLate = true;
-                            }
-                        });
-
-                        if (hasLate) city.status[tipo] = 'Em Atraso';
-                        else if (hasPending) city.status[tipo] = 'Pendente';
-                        else city.status[tipo] = 'No Prazo';
-                    });
-                });
-
-                return Object.values(result).filter(city => 
-                    city.status['Locação de Imóveis'] !== 'Sem Dados' || 
-                    city.status['Energia Elétrica'] !== 'Sem Dados' || 
-                    city.status['Água e Esgoto'] !== 'Sem Dados'
-                );
-            }, []);
-
-            const stats = useMemo(() => {
-                const filtered = rawData.filter(d => {
-                    if (d.tipo !== activeTab) return false;
-                    const matchCity = filterCity === 'Todas' || d.cidade === filterCity;
-                    const matchSearch = d.cidade.toLowerCase().includes(searchTerm.toLowerCase()) || (d.mes && d.mes.toLowerCase().includes(searchTerm.toLowerCase()));
-                    let matchStatus = true;
-                    if (statusFilter !== 'Todos') {
-                        const isPaid = !!d.pagamento;
-                        const v = parseDate(d.vencimento), p = parseDate(d.pagamento);
-                        const isLate = isPaid && v && p && p > v;
-                        if (statusFilter === 'Pendente') matchStatus = !isPaid;
-                        if (statusFilter === 'Pago') matchStatus = isPaid && !isLate;
-                        if (statusFilter === 'Atrasado') matchStatus = isLate;
-                    }
-                    return matchCity && matchSearch && matchStatus;
-                });
-
-                const totalValor = filtered.reduce((acc, curr) => acc + curr.valor, 0);
-                const totalPago = filtered.reduce((acc, curr) => curr.pagamento ? acc + curr.valor : acc, 0);
-                const ticketMedio = totalValor / (filtered.filter(d => d.valor > 0).length || 1);
-                
-                const mesesOrdem = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-                const porMes = mesesOrdem.map(m => ({
-                    name: m, valor: filtered.filter(d => d.mes && d.mes.toLowerCase().includes(m.toLowerCase())).reduce((acc, curr) => acc + curr.valor, 0)
-                })).filter(m => m.valor > 0);
-
-                let noPrazo = 0, emAtraso = 0, pendente = 0;
-                filtered.forEach(d => {
-                    if (d.valor <= 0) return;
-                    if (!d.pagamento) pendente++;
-                    else {
-                        const v = parseDate(d.vencimento), p = parseDate(d.pagamento);
-                        if (v && p && p > v) emAtraso++; else noPrazo++;
-                    }
-                });
-
-                const statusData = [{ name: "No Prazo", value: noPrazo }, { name: "Em Atraso", value: emAtraso }, { name: "Pendente", value: pendente }].filter(s => s.value > 0);
-
-                const groupedMap = filtered.reduce((acc, curr) => {
-                    if (!acc[curr.cidade]) acc[curr.cidade] = { cidade: curr.cidade, items: [], lastDueDate: null, lastPaymentDate: null };
-                    acc[curr.cidade].items.push(curr);
-                    const vDate = parseDate(curr.vencimento);
-                    if (vDate && (!acc[curr.cidade].lastDueDate || vDate > parseDate(acc[curr.cidade].lastDueDate))) acc[curr.cidade].lastDueDate = curr.vencimento;
-                    const pDate = parseDate(curr.pagamento);
-                    if (pDate && (!acc[curr.cidade].lastPaymentDate || pDate > parseDate(acc[curr.cidade].lastPaymentDate))) acc[curr.cidade].lastPaymentDate = curr.pagamento;
-                    return acc;
-                }, {});
-
-                const groupedArray = Object.values(groupedMap).sort((a, b) => {
-                    let vA = a[sortConfig.key], vB = b[sortConfig.key];
-                    if (sortConfig.key === 'lastDueDate') { vA = parseDate(vA) || 0; vB = parseDate(vB) || 0; }
-                    return sortConfig.direction === 'asc' ? (vA > vB ? 1 : -1) : (vA < vB ? 1 : -1);
-                });
-
-                return { totalValor, totalPago, ticketMedio, pendenteValor: totalValor - totalPago, porMes, statusData, groupedArray };
-            }, [activeTab, filterCity, searchTerm, statusFilter, sortConfig]);
-
-            const uniqueCitiesList = ['Todas', ...new Set(rawData.filter(d => d.tipo === activeTab).map(d => d.cidade))].sort();
-
-            const toggleCity = (c) => {
-                const n = new Set(expandedCities);
-                if (n.has(c)) n.delete(c); else n.add(c);
-                setExpandedCities(n);
-            };
-
-            const handleSort = (key) => {
-                setSortConfig(prev => ({ key, direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc' }));
-            };
-
-            return (
-                <div className="w-full">
-                    <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                        <h2 className="text-xl font-bold text-slate-700 tracking-tight">Detalhes de Locações e Utilidades</h2>
-                        <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200 shadow-inner overflow-x-auto hide-scrollbar whitespace-nowrap">
-                            {['Locação de Imóveis', 'Energia Elétrica', 'Água e Esgoto'].map(tab => (
-                                <button 
-                                    key={tab}
-                                    onClick={() => { setActiveTab(tab); setExpandedCities(new Set()); setFilterCity('Todas'); }}
-                                    className={`px-5 py-2.5 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-wider transition-all ${activeTab === tab ? 'tab-active-react shadow-md' : 'text-slate-400 hover:text-slate-600'}`}
-                                >
-                                    {tab}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                        <CardKpi title={`Total ${activeTab}`} value={formatCurrency(stats.totalValor)} iconName="coins" color="blue" />
-                        <CardKpi title="Total Liquidado" value={formatCurrency(stats.totalPago)} iconName="verified" color="emerald" />
-                        <CardKpi title="Em Aberto" value={formatCurrency(stats.pendenteValor)} iconName="timer" color="amber" />
-                        <CardKpi title="Ticket Médio" value={formatCurrency(stats.ticketMedio)} iconName="activity" color="purple" />
-                    </div>
-
-                    <LeafletMap data={mapData} />
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                        <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100" key={`chart-bar-${activeTab}`}>
-                            <h3 className="text-[10px] font-black text-slate-400 mb-6 flex items-center gap-2 uppercase tracking-widest">
-                                <LucideIcon name="trending-up" className="text-blue-500 w-4 h-4" /> Custos por Período
-                            </h3>
-                            <div className="h-[280px]">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={stats.porMes}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 10, fontWeight: 700}} />
-                                        <YAxis hide />
-                                        <Tooltip cursor={{fill: '#f8fafc'}} />
-                                        <Bar dataKey="valor" fill="#005fb2" radius={[12, 12, 0, 0]} barSize={40}>
-                                            <LabelList dataKey="valor" position="top" formatter={(v) => `R$ ${v.toFixed(0)}`} style={{ fill: '#475569', fontSize: '9px', fontWeight: '900' }} />
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
-
-                        <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col items-center" key={`chart-pie-${activeTab}`}>
-                            <h3 className="text-[10px] font-black text-slate-400 mb-6 flex items-center gap-2 uppercase tracking-widest self-start">
-                                <LucideIcon name="shield-alert" className="text-orange-500 w-4 h-4" /> Distribuição de Status
-                            </h3>
-                            <div className="h-[280px] w-full relative">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie data={stats.statusData} innerRadius={65} outerRadius={95} paddingAngle={8} dataKey="value" stroke="none" label={({name, value}) => `${name}: ${value}`}>
-                                            {stats.statusData.map((e, i) => <Cell key={i} fill={COLORS_STATUS[e.name]} />)}
-                                        </Pie>
-                                        <Tooltip />
-                                        <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{fontSize: '10px', fontWeight: 'black', textTransform: 'uppercase'}} />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white p-4 mb-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center">
-                        <div className="relative flex-1 w-full">
-                            <LucideIcon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                            <input 
-                                type="text" 
-                                placeholder={`Pesquisar faturas de ${activeTab.toLowerCase()}...`}
-                                className="pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none w-full text-sm font-medium focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all"
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </div>
-                        <div className="flex gap-2 w-full md:w-auto">
-                            <select className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none text-xs font-bold cursor-pointer focus:bg-white shadow-sm" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                                <option value="Todos">Status: Todos</option>
-                                <option value="Pago">Liquidados</option>
-                                <option value="Atrasado">Em Atraso</option>
-                                <option value="Pendente">Pendentes</option>
-                            </select>
-                            <select className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none text-xs font-bold cursor-pointer focus:bg-white flex-1 md:flex-none shadow-sm" value={filterCity} onChange={(e) => setFilterCity(e.target.value)}>
-                                {uniqueCitiesList.map(c => <option key={c} value={c}>{c}</option>)}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
-                                <thead>
-                                    <tr className="bg-slate-50/80 text-slate-400 text-[10px] uppercase tracking-widest font-black border-b border-slate-200">
-                                        <th className="px-6 py-5 w-12"></th>
-                                        <SortableHeader label="Localidade" field="cidade" currentSort={sortConfig} onSort={handleSort} />
-                                        <SortableHeader label="Docs" field="items" currentSort={sortConfig} onSort={() => {}} center />
-                                        <SortableHeader label="Vencimento" field="lastDueDate" currentSort={sortConfig} onSort={handleSort} />
-                                        <SortableHeader label="Previsão (+30d)" field="nextDueDate" currentSort={sortConfig} onSort={() => {}} />
-                                        <th className="px-6 py-5 text-right font-black">Ciclo Operacional</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {stats.groupedArray.map((city) => {
-                                        const isOpen = expandedCities.has(city.cidade);
-                                        let nextDate = "—", alert = false;
-                                        if (city.lastDueDate) {
-                                            const last = parseDate(city.lastDueDate);
-                                            const next = new Date(last); next.setDate(last.getDate() + 30);
-                                            nextDate = formatDate(next);
-                                            if (Math.ceil((next - today) / 86400000) <= 5) alert = true;
-                                        }
-
-                                        return (
-                                            <React.Fragment key={`${activeTab}-${city.cidade}`}>
-                                                <tr className={`hover:bg-slate-50 cursor-pointer transition-all ${isOpen ? 'bg-blue-50/40' : ''}`} onClick={() => toggleCity(city.cidade)}>
-                                                    <td className="px-6 py-5 text-center">
-                                                        <div className={`p-1.5 rounded-lg border ${isOpen ? 'bg-[#005fb2] text-white border-[#005fb2]' : 'bg-white text-slate-300'}`}>
-                                                            <LucideIcon name={isOpen ? "chevron-up" : "chevron-down"} className="w-3 h-3" />
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-5">
-                                                        <div className="flex flex-col">
-                                                            <span className="font-black text-slate-900 text-sm tracking-tight">{city.cidade}</span>
-                                                            <span className="text-[9px] text-slate-400 font-black uppercase tracking-tighter">{cityMetadata[city.cidade]?.uf || "BR"} • {activeTab}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-5 text-center font-black text-slate-500 text-xs">{city.items.length}</td>
-                                                    <td className="px-6 py-5 text-xs font-bold text-slate-600 italic">{city.lastDueDate || "—"}</td>
-                                                    <td className="px-6 py-5 text-xs font-black text-slate-700">{nextDate}</td>
-                                                    <td className="px-6 py-5 text-right">
-                                                        {alert ? (
-                                                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-100 text-red-700 text-[9px] font-black border border-red-200 animate-pulse uppercase">Vencendo</span>
-                                                        ) : (
-                                                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 text-[9px] font-black border border-slate-200 uppercase tracking-tighter">Fluxo Normal</span>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                                {isOpen && (
-                                                    <tr>
-                                                        <td colSpan="6" className="px-6 py-0 bg-slate-50/30">
-                                                            <div className="my-6 rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden mx-4">
-                                                                <table className="w-full text-[11px]">
-                                                                    <thead className="bg-slate-50 text-slate-400 uppercase font-black border-b border-slate-100">
-                                                                        <tr>
-                                                                            <th className="px-8 py-3 text-left">Mês Base</th>
-                                                                            <th className="px-8 py-3 text-left">Valor Líquido</th>
-                                                                            <th className="px-8 py-3 text-left">Vencimento</th>
-                                                                            <th className="px-8 py-3 text-left">Liquidação</th>
-                                                                            <th className="px-8 py-3 text-right">Parecer</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody className="divide-y divide-slate-50">
-                                                                        {city.items.map((item, i) => {
-                                                                            const late = item.pagamento && parseDate(item.pagamento) > parseDate(item.vencimento);
-                                                                            return (
-                                                                                <tr key={`${activeTab}-${city.cidade}-${i}`} className="hover:bg-slate-50 transition-colors">
-                                                                                    <td className="px-8 py-4 font-bold text-slate-800 uppercase tracking-tight">{item.mes}</td>
-                                                                                    <td className="px-8 py-4 font-black text-slate-900 text-sm">{formatCurrency(item.valor)}</td>
-                                                                                    <td className="px-8 py-4 text-slate-400 font-medium italic">{item.vencimento || '—'}</td>
-                                                                                    <td className="px-8 py-4 text-slate-400 font-medium italic">{item.pagamento || '—'}</td>
-                                                                                    <td className="px-8 py-4 text-right">
-                                                                                        {item.valor <= 0 ? <span className="text-[9px] font-black text-slate-300">N/A</span> :
-                                                                                         !item.pagamento ? <span className="bg-amber-50 text-amber-600 px-2.5 py-1 rounded-md border border-amber-100 font-black text-[9px] uppercase">Pendente</span> :
-                                                                                         late ? <span className="bg-red-50 text-red-600 px-2.5 py-1 rounded-md border border-red-100 font-black text-[9px] uppercase">Atraso</span> :
-                                                                                         <span className="bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-md border border-emerald-100 font-black text-[9px] uppercase">Liquidado</span>}
-                                                                                    </td>
-                                                                                </tr>
-                                                                            );
-                                                                        })}
-                                                                    </tbody>
-                                                                </table>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                )}
-                                            </React.Fragment>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root-utilidades'));
-        root.render(<AppUtilidades />);
-    </script>
+// Chamar a função após inicializar as tabelas
+destacarNotasVerde();
+;
+</script>
 </body>
 </html>
